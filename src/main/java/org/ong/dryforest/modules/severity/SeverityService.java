@@ -112,6 +112,8 @@ public class SeverityService {
             );
 
             severityTranslationRepository.save(translation);
+
+            severity.getTranslations().add(translation);
         }
     }
 }

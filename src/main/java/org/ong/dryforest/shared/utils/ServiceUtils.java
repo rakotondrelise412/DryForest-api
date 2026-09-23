@@ -12,6 +12,7 @@ public final class ServiceUtils {
     private ServiceUtils() {
     }
 
+
     public static <T> T getOrThrow(
             Supplier<Optional<T>> supplier,
             ErrorCode code,
@@ -24,6 +25,7 @@ public final class ServiceUtils {
                 HttpStatus.NOT_FOUND
         );
     }
+
 
     public static <T> T getOrThrow(
             Supplier<Optional<T>> supplier,
@@ -39,5 +41,21 @@ public final class ServiceUtils {
                                 message
                         )
                 );
+    }
+
+
+    public static Long requireId(
+            Long id,
+            String message
+    ) {
+        if (id == null) {
+            throw new ApiException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ErrorCode.INTERNAL_ERROR,
+                    message
+            );
+        }
+
+        return id;
     }
 }

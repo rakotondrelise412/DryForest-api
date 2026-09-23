@@ -64,7 +64,7 @@ public class SeverityService {
 
         var oldTranslations =
                 severityTranslationRepository
-                        .FindAllBySeverity_Id(id);
+                        .findAllBySeverity_Id(id);
 
         severityTranslationRepository.deleteAll(oldTranslations);
 
@@ -100,7 +100,7 @@ public class SeverityService {
             List<SeverityTranslationDTO> translationDTOs
     ) {
 
-        if (translationDTOs == null || translationDTOs.isEmpty()) {
+        if (translationDTOs.isEmpty()) {
             return;
         }
 
@@ -125,17 +125,20 @@ public class SeverityService {
 
     private SeverityDTO toDTO(Severity severity) {
 
+        var id = ServiceUtils.requireId(
+                severity.getId(),
+                "Severity ID must not be null"
+        );
+
         var translations =
                 severityTranslationRepository
-                        .FindAllBySeverity_Id(
-                                severity.getId()
-                        )
+                        .findAllBySeverity_Id(id)
                         .stream()
                         .map(this::translationToDTO)
                         .toList();
 
         return new SeverityDTO(
-                severity.getId(),
+                id,
                 translations
         );
     }
@@ -145,8 +148,13 @@ public class SeverityService {
             SeverityTranslation translation
     ) {
 
-        return new SeverityTranslationDTO(
+        var id = ServiceUtils.requireId(
                 translation.getId(),
+                "SeverityTranslation ID must not be null"
+        );
+
+        return new SeverityTranslationDTO(
+                id,
                 translation.getLocale(),
                 translation.getName()
         );

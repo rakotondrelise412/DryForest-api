@@ -1,11 +1,11 @@
   spring:
     application:
-      name: dryforest
+      name: dryforest_app
 
     datasource:
-      url: jdbc:postgresql://localhost:5432/dryforest # # jdbc:postgresql://dpg-d8gm4etckfvc73cs6q8g-a.frankfurt-postgres.render.com:5432/dryforest?ssl=true&sslmode=require
-      username: postgres # voahary
-      password: florentino # y4lTdfLMrP3X9Hs6qtsHZYScOwq03LdC
+      url: jdbc:postgresql://localhost:5432/dryforest_app
+      username: postgres
+      password: florentino
       driver-class-name: org.postgresql.Driver
 
     jpa:

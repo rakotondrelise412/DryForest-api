@@ -1,0 +1,17 @@
+package org.ong.dryforest.modules.patrol.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ObservationTypeDTO {
+
+    private Long id;
+
+    private List<ObservationTypeTranslationDTO> translations;
+}

@@ -13,4 +13,6 @@ public enum ErrorCode {
 
     USER_NOT_FOUND,
     USER_ALREADY_EXISTS,
+
+    SEVERITY_NOT_FOUND
 }

@@ -1,12 +1,14 @@
-package org.ong.dryforest.modules.severity.service;
+package org.ong.dryforest.modules.severity;
 
 import lombok.RequiredArgsConstructor;
-import org.ong.dryforest.modules.severity.Severity;
-import org.ong.dryforest.modules.severity.SeverityRepository;
 import org.ong.dryforest.modules.severity.dto.SeverityDTO;
 import org.ong.dryforest.modules.severity.dto.SeverityTranslationDTO;
 import org.ong.dryforest.modules.severity.translations.SeverityTranslation;
 import org.ong.dryforest.modules.severity.translations.SeverityTranslationRepository;
+import org.ong.dryforest.shared.exceptions.ErrorCode;
+import org.ong.dryforest.shared.utils.ServiceUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,73 +17,56 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class SeverityServiceImpl implements SeverityService {
+public class SeverityService {
 
     private final SeverityRepository severityRepository;
-
     private final SeverityTranslationRepository severityTranslationRepository;
 
 
-    @Override
     @Transactional(readOnly = true)
-    public List<SeverityDTO> getAll() {
+    public Page<SeverityDTO> getAll(Pageable pageable) {
 
-        return severityRepository.findAll()
-                .stream()
-                .map(this::toDTO)
-                .toList();
+        return severityRepository.findAll(pageable)
+                .map(this::toDTO);
     }
 
 
-    @Override
     @Transactional(readOnly = true)
     public SeverityDTO getById(Long id) {
 
-        Severity severity = severityRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Severity not found with id: " + id
-                        )
-                );
+        var severity = getSeverityOrThrow(id);
 
         return toDTO(severity);
     }
 
 
-    @Override
     public SeverityDTO create(SeverityDTO severityDTO) {
 
-        Severity severity = new Severity();
-        Severity savedSeverity =
-                severityRepository.save(severity);
+        var severity = new Severity();
+
+        var savedSeverity = severityRepository.save(severity);
+
         saveTranslations(
                 savedSeverity,
                 severityDTO.getTranslations()
         );
+
         return toDTO(savedSeverity);
     }
 
 
-    @Override
     public SeverityDTO update(
             Long id,
             SeverityDTO severityDTO
     ) {
 
-        Severity severity = severityRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Severity not found with id: " + id
-                        )
-                );
+        var severity = getSeverityOrThrow(id);
 
-        List<SeverityTranslation> oldTranslations =
+        var oldTranslations =
                 severityTranslationRepository
-                        .findAllBySeverity_Id(id);
+                        .FindAllBySeverity_Id(id);
 
-        severityTranslationRepository.deleteAll(
-                oldTranslations
-        );
+        severityTranslationRepository.deleteAll(oldTranslations);
 
         saveTranslations(
                 severity,
@@ -92,17 +77,21 @@ public class SeverityServiceImpl implements SeverityService {
     }
 
 
-    @Override
     public void delete(Long id) {
 
-        Severity severity = severityRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Severity not found with id: " + id
-                        )
-                );
+        var severity = getSeverityOrThrow(id);
 
         severityRepository.delete(severity);
+    }
+
+
+    private Severity getSeverityOrThrow(Long id) {
+
+        return ServiceUtils.getOrThrow(
+                () -> severityRepository.findById(id),
+                ErrorCode.SEVERITY_NOT_FOUND,
+                "Severity not found with id: " + id
+        );
     }
 
 
@@ -111,17 +100,13 @@ public class SeverityServiceImpl implements SeverityService {
             List<SeverityTranslationDTO> translationDTOs
     ) {
 
-        if (translationDTOs == null ||
-                translationDTOs.isEmpty()) {
-
+        if (translationDTOs == null || translationDTOs.isEmpty()) {
             return;
         }
 
-        for (SeverityTranslationDTO translationDTO :
-                translationDTOs) {
+        for (var translationDTO : translationDTOs) {
 
-            SeverityTranslation translation =
-                    new SeverityTranslation();
+            var translation = new SeverityTranslation();
 
             translation.setLocale(
                     translationDTO.getLocale()
@@ -133,19 +118,16 @@ public class SeverityServiceImpl implements SeverityService {
 
             translation.setSeverity(severity);
 
-            severityTranslationRepository.save(
-                    translation
-            );
+            severityTranslationRepository.save(translation);
         }
     }
 
-    private SeverityDTO toDTO(
-            Severity severity
-    ) {
 
-        List<SeverityTranslationDTO> translations =
+    private SeverityDTO toDTO(Severity severity) {
+
+        var translations =
                 severityTranslationRepository
-                        .findAllBySeverity_Id(
+                        .FindAllBySeverity_Id(
                                 severity.getId()
                         )
                         .stream()
@@ -157,7 +139,6 @@ public class SeverityServiceImpl implements SeverityService {
                 translations
         );
     }
-
 
 
     private SeverityTranslationDTO translationToDTO(

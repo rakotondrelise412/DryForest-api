@@ -9,5 +9,5 @@ import java.util.List;
 public interface SeverityTranslationRepository
         extends JpaRepository<SeverityTranslation, Long> {
 
-    List<SeverityTranslation> findAllBySeverity_Id(Long severityId);
+    List<SeverityTranslation> FindAllBySeverity_Id(Long severityId);
 }

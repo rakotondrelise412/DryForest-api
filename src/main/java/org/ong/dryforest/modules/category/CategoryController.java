@@ -3,59 +3,50 @@ package org.ong.dryforest.modules.category;
 
 import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.category.dto.CategoryDTO;
-import org.ong.dryforest.modules.category.service.CategoryService;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
 
-    final CategoryService categoryService;
+    private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<List<CategoryDTO>> getAll(){
-
-        return ResponseEntity.ok(
-                categoryService.getAll()
-        );
+    public Page<CategoryDTO> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        Pageable pageable = PageRequest.of(page, size);
+        return categoryService.getAll(pageable);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity <CategoryDTO> getById(
+    public CategoryDTO getById(
             @PathVariable Long id){
-        return ResponseEntity.ok(
-                categoryService.getById(id)
-        );
+        return categoryService.getById(id);
     }
 
     @PostMapping
-    public ResponseEntity <CategoryDTO> create(
+    public CategoryDTO create(
             @RequestBody CategoryDTO categoryDTO){
-        return ResponseEntity.ok(
-                categoryService.create(categoryDTO)
-        );
+        return categoryService.create(categoryDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity <CategoryDTO> update(
+    public CategoryDTO update(
             @PathVariable Long id,
-            @RequestBody CategoryDTO categoryDTO
-    ){
-        return ResponseEntity.ok(
-                categoryService.update(id, categoryDTO)
-        );
+            @RequestBody CategoryDTO categoryDTO){
+        return categoryService.update(id, categoryDTO);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity <Void> delete(
-            @PathVariable Long id){
+    public void delete(@PathVariable Long id){
         categoryService.delete(id);
-
-        return ResponseEntity.noContent().build();
     }
 
 }

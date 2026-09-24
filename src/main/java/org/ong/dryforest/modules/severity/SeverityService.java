@@ -62,16 +62,14 @@ public class SeverityService {
 
         var severity = getSeverityOrThrow(id);
 
-        var oldTranslations =
-                severityTranslationRepository
-                        .findAllBySeverity_Id(id);
-
-        severityTranslationRepository.deleteAll(oldTranslations);
+        severity.getTranslations().clear();
 
         saveTranslations(
                 severity,
                 severityDTO.getTranslations()
         );
+
+        severityRepository.saveAndFlush(severity);
 
         return severityMapper.toDTO(severity);
     }

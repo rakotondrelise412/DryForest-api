@@ -31,6 +31,9 @@ public class User extends AbstractEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private Long salary;
+
     @OneToOne
     @JoinColumn(nullable = false)
     private Person person;

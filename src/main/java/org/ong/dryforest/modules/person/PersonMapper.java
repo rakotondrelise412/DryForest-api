@@ -1,21 +1,16 @@
-package org.ong.dryforest.modules.person.mapper;
+package org.ong.dryforest.modules.person;
 
-import org.ong.dryforest.modules.person.Person;
 import org.ong.dryforest.modules.person.dto.PersonWebDTO;
-import org.ong.dryforest.modules.site.Site;
+import org.springframework.stereotype.Component;
 
+@Component
 public class PersonMapper {
 
-    private PersonMapper() {
-    }
-
-    public static PersonWebDTO toWebDTO(Person person) {
+    public PersonWebDTO toWebDTO(Person person) {
 
         Long siteId = null;
 
-        if (person.getSite() != null) {
-            siteId = person.getSite().getId();
-        }
+        siteId = person.getSite().getId();
 
         return new PersonWebDTO(
                 person.getId(),

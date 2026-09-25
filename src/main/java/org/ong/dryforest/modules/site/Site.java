@@ -5,11 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.jspecify.annotations.Nullable;
-import org.locationtech.jts.geom.Point;
 import org.ong.dryforest.modules.person.Person;
+import org.ong.dryforest.modules.site.translation.SiteTranslation;
 import org.ong.dryforest.modules.species.Species;
 import org.ong.dryforest.shared.base.AbstractEntity;
+import org.locationtech.jts.geom.Point;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,11 +22,15 @@ import java.util.List;
 @Setter
 public class Site extends AbstractEntity {
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @OneToMany(
+            mappedBy = "site",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<SiteTranslation> translations = new ArrayList<>();
 
     @Column(columnDefinition = "GEOMETRY(Point, 4326)")
-    private @Nullable Point location;
+    private Point location;
 
     @OneToMany(mappedBy = "site", cascade = CascadeType.ALL)
     private List<Person> members = new ArrayList<>();

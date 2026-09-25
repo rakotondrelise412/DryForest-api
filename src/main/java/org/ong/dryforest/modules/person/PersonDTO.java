@@ -1,4 +1,4 @@
-package org.ong.dryforest.modules.person.dto;
+package org.ong.dryforest.modules.person;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import org.ong.dryforest.enums.Gender;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PersonWebDTO {
+public class PersonDTO {
 
     private Long id;
 

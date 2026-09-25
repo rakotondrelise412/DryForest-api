@@ -35,4 +35,10 @@ public abstract class AbstractEntity implements Serializable {
     @Column(nullable = false)
     @LastModifiedDate
     protected Instant updatedAt;
+
+    @Column(name = "is_deleted", nullable = false)
+    protected boolean isDeleted = false;
+
+    @Column(name = "is_synced", nullable = false)
+    protected boolean isSynced = false;
 }

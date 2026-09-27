@@ -13,6 +13,7 @@ public class UserMapper {
 
         Person person = user.getPerson();
 
+        assert person.getPhoneNumber() != null;
         return new UserDto(
                 user.getId(),
                 user.getUsername(),

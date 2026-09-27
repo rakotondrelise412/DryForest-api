@@ -71,6 +71,6 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicRoute(String path) {
-        return path.startsWith(RoutesConstants.PUBLIC[0].substring(0, 6));
+        return path.equals("/auth/login");
     }
 }

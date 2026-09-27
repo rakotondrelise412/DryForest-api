@@ -6,7 +6,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
+public interface UserRepository
+        extends JpaRepository<User, Long>,
+        JpaSpecificationExecutor<User> {
 
     @EntityGraph(attributePaths = {"person"})
     Optional<User> findByUsername(String username);

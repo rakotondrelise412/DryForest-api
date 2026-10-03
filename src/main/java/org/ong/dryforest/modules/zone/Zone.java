@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 import org.locationtech.jts.geom.Polygon;
 import org.ong.dryforest.modules.plantation.PlantationBlock;
+import org.ong.dryforest.modules.site.Site;
 import org.ong.dryforest.modules.zone.translations.ZoneTranslation;
 import org.ong.dryforest.shared.base.AbstractEntity;
 
@@ -32,7 +33,12 @@ public class Zone extends AbstractEntity {
     private @Nullable Polygon geom;
 
     @ManyToOne
-    private @Nullable ZoneType typeZone;
+    @JoinColumn(name = "type_zone_id")
+    private ZoneType typeZone;
+
+    @ManyToOne
+    @JoinColumn(name = "site_id", nullable = false)
+    private Site site;
 
     @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlantationBlock> plantationBlocks = new ArrayList<>();

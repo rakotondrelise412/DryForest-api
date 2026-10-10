@@ -1,4 +1,4 @@
-package org.ong.dryforest.modules.species;
+package org.ong.dryforest.modules.species.speciesZoneNeed;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.jspecify.annotations.Nullable;
+import org.ong.dryforest.modules.species.Species;
 import org.ong.dryforest.modules.zone.ZoneNeed;
 import org.ong.dryforest.shared.base.AbstractEntity;
 
@@ -27,7 +28,7 @@ public class SpeciesZoneNeed extends AbstractEntity {
     private @Nullable UUID uuid;
 
     @ManyToOne
-    private @Nullable  Species species;
+    private @Nullable Species species;
 
     @ManyToOne
     private @Nullable ZoneNeed zoneNeed;

@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.ong.dryforest.modules.category.translations.CategoryTranslation;
 import org.ong.dryforest.shared.base.AbstractEntity;
 
 import java.util.ArrayList;

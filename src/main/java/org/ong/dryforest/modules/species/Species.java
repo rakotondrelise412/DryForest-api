@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 import org.ong.dryforest.modules.site.Site;
+import org.ong.dryforest.modules.species.speciesType.SpeciesType;
 import org.ong.dryforest.modules.species.translations.SpeciesTranslation;
 import org.ong.dryforest.shared.base.AbstractEntity;
 

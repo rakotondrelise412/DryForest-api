@@ -4,7 +4,6 @@ package org.ong.dryforest.modules.category;
 import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.category.dto.CategoryDTO;
 import org.ong.dryforest.modules.category.dto.CategoryTranslationDTO;
-import org.ong.dryforest.modules.category.translations.CategoryTranslation;
 import org.ong.dryforest.shared.utils.ServiceUtils;
 import org.springframework.stereotype.Component;
 

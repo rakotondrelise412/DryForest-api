@@ -1,4 +1,4 @@
-package org.ong.dryforest.modules.species;
+package org.ong.dryforest.modules.species.speciesType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.ong.dryforest.modules.species.translations.SpeciesTypeTranslation;
 import org.ong.dryforest.shared.base.AbstractEntity;
 
 import java.util.ArrayList;

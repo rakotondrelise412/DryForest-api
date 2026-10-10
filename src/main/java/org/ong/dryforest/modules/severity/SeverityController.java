@@ -5,6 +5,7 @@ import org.ong.dryforest.modules.severity.dto.SeverityDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -37,6 +38,7 @@ public class SeverityController {
 
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public SeverityDTO create(
             @RequestBody SeverityDTO severityDTO
     ) {
@@ -56,6 +58,7 @@ public class SeverityController {
 
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
             @PathVariable Long id
     ) {

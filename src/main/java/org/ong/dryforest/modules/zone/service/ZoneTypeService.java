@@ -28,22 +28,7 @@ public class ZoneTypeService {
         ZoneType entity =
                 mapper.toEntity(dto);
 
-        if (dto.getTranslations() != null) {
-
-            dto.getTranslations()
-                    .forEach(translationDTO -> {
-
-                        ZoneTypeTranslation translation =
-                                mapper.toEntity(
-                                        translationDTO
-                                );
-
-                        translation.setZoneType(entity);
-
-                        entity.getTranslations()
-                                .add(translation);
-                    });
-        }
+        saveTranslations(entity, dto);
 
         return mapper.toDTO(
                 repository.save(entity)
@@ -65,11 +50,7 @@ public class ZoneTypeService {
     public ZoneTypeDTO findById(Long id) {
 
         ZoneType entity =
-                ServiceUtils.getOrThrow(
-                        () -> repository.findById(id),
-                        ErrorCode.ZONE_TYPE_NOT_FOUND,
-                        "Type de zone introuvable"
-                );
+                getZoneTypeOrThrow(id);
 
         return mapper.toDTO(entity);
     }
@@ -81,34 +62,11 @@ public class ZoneTypeService {
             ZoneTypeDTO dto) {
 
         ZoneType entity =
-                ServiceUtils.getOrThrow(
-                        () -> repository.findById(id),
-                        ErrorCode.ZONE_TYPE_NOT_FOUND,
-                        "Type de zone introuvable"
-                );
+                getZoneTypeOrThrow(id);
 
-        if (dto.getName() != null) {
-            entity.setName(dto.getName());
-        }
+        entity.setName(dto.getName());
 
-        if (dto.getTranslations() != null) {
-
-            entity.getTranslations().clear();
-
-            dto.getTranslations()
-                    .forEach(translationDTO -> {
-
-                        ZoneTypeTranslation translation =
-                                mapper.toEntity(
-                                        translationDTO
-                                );
-
-                        translation.setZoneType(entity);
-
-                        entity.getTranslations()
-                                .add(translation);
-                    });
-        }
+        saveTranslations(entity, dto);
 
         return mapper.toDTO(
                 repository.save(entity)
@@ -120,14 +78,42 @@ public class ZoneTypeService {
     public void delete(Long id) {
 
         ZoneType entity =
-                ServiceUtils.getOrThrow(
-                        () -> repository.findById(id),
-                        ErrorCode.ZONE_TYPE_NOT_FOUND,
-                        "Type de zone introuvable"
-                );
+                getZoneTypeOrThrow(id);
 
         entity.setDeleted(true);
 
         repository.save(entity);
+    }
+
+
+    private ZoneType getZoneTypeOrThrow(Long id) {
+
+        return ServiceUtils.getOrThrow(
+                () -> repository.findById(id),
+                ErrorCode.ZONE_TYPE_NOT_FOUND,
+                "Type de zone introuvable"
+        );
+    }
+
+
+    private void saveTranslations(
+            ZoneType entity,
+            ZoneTypeDTO dto) {
+
+        entity.getTranslations().clear();
+
+        dto.getTranslations()
+                .forEach(translationDTO -> {
+
+                    ZoneTypeTranslation translation =
+                            mapper.toEntity(
+                                    translationDTO
+                            );
+
+                    translation.setZoneType(entity);
+
+                    entity.getTranslations()
+                            .add(translation);
+                });
     }
 }

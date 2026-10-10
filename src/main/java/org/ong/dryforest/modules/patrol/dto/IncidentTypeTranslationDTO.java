@@ -1,14 +1,14 @@
 package org.ong.dryforest.modules.patrol.dto;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.ong.dryforest.shared.base.AbstractTimestamps;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class IncidentTypeTranslationDTO {
+public class IncidentTypeTranslationDTO extends AbstractTimestamps {
 
     private Long id;
 

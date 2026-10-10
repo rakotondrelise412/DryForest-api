@@ -14,7 +14,7 @@ public interface UserRepository
     Optional<User> findByUsername(String username);
 
     @EntityGraph(attributePaths = {"person"})
-    Optional<User> findById(Long id);
+    Optional<User> findUserById(Long id);
 
     boolean existsByUsername(String username);
 }

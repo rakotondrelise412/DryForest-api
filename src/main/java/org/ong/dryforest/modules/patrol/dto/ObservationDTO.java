@@ -1,17 +1,17 @@
 package org.ong.dryforest.modules.patrol.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.ong.dryforest.shared.base.AbstractTimestamps;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ObservationDTO {
+public class ObservationDTO extends AbstractTimestamps {
 
     private Long id;
 

@@ -4,51 +4,55 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.ong.dryforest.enums.Gender;
+import org.ong.dryforest.shared.base.AbstractTimestamps;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @NullMarked
-public record UserDto(
+public class UserDto extends AbstractTimestamps {
 
         @Nullable
-        Long id,
+        private Long id;
 
         @NotNull
         @NotBlank
-        String username,
+        private String username;
 
         @Nullable
-        String password,
+        private String password;
 
         @NotNull
         @PositiveOrZero
-        Long salary,
+        private Long salary;
 
         @NotNull
         @NotBlank
-        String firstName,
+        private String firstName;
 
         @NotNull
         @NotBlank
-        String lastName,
+        private String lastName;
 
         @NotNull
-        Gender gender,
+        private Gender gender;
 
         @NotNull
         @NotBlank
-        String phoneNumber,
+        private String phoneNumber;
 
         @NotNull
         @Email
-        String email,
+        private String email;
 
         @Nullable
-        String address,
-
-        @Nullable
-        Long farmId
-
-) {
+        private String address;
 }

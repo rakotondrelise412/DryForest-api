@@ -11,28 +11,41 @@ public final class SortEngine {
     private SortEngine() {
     }
 
-    public static <T> Map.Entry<String, List<String>> build(T clazz) {
+    public static Map.Entry<String, List<String>> build(
+            Class<?> entityClass) {
+
         List<String> sortableFieldNames = new ArrayList<>();
         String defaultSort = null;
-        for (var field : SearchUtils.getAllFields(clazz.getClass())) {
-            SortableField annotation = field.getAnnotation(SortableField.class);
+
+        for (var field : SearchUtils.getAllFields(entityClass)) {
+            SortableField annotation =
+                    field.getAnnotation(SortableField.class);
 
             if (annotation == null) {
                 continue;
             }
 
-            var pathKey = annotation.field().isBlank()
+            String pathKey = annotation.field().isBlank()
                     ? field.getName()
                     : annotation.field();
 
-            if (defaultSort == null && annotation.initialize()) {
+            if (annotation.initialize() && defaultSort == null) {
                 defaultSort = pathKey;
             }
 
-            sortableFieldNames.add(pathKey);
+            if (!sortableFieldNames.contains(pathKey)) {
+                sortableFieldNames.add(pathKey);
+            }
         }
 
-        return Map.entry(defaultSort == null ? "id" : defaultSort, sortableFieldNames);
-    }
+        if (defaultSort == null) {
+            defaultSort = "id";
+        }
 
+        if (!sortableFieldNames.contains("id")) {
+            sortableFieldNames.add("id");
+        }
+
+        return Map.entry(defaultSort, sortableFieldNames);
+    }
 }

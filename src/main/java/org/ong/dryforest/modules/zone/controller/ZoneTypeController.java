@@ -4,10 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.zone.dto.ZoneTypeDTO;
 import org.ong.dryforest.modules.zone.service.ZoneTypeService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,60 +14,49 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ZoneTypeController {
 
-    private final ZoneTypeService service;
+    private final ZoneTypeService zoneTypeService;
 
 
     @PostMapping
-    public ResponseEntity<ZoneTypeDTO> create(
+    @ResponseStatus(HttpStatus.CREATED)
+    public ZoneTypeDTO create(
             @RequestBody ZoneTypeDTO dto) {
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(service.create(dto));
+        return zoneTypeService.create(dto);
     }
 
-
     @GetMapping
-    public ResponseEntity<Page<ZoneTypeDTO>> findAll(
-            @PageableDefault(
-                    page = 0,
-                    size = 10
-            )
-            Pageable pageable) {
-
-        return ResponseEntity.ok(
-                service.findAll(pageable)
-        );
+    public Page<ZoneTypeDTO> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+            ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return zoneTypeService.findAll(pageable);
     }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<ZoneTypeDTO> findById(
+    public ZoneTypeDTO findById(
             @PathVariable Long id) {
 
-        return ResponseEntity.ok(
-                service.findById(id)
-        );
+        return zoneTypeService.findById(id);
     }
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<ZoneTypeDTO> update(
+    public ZoneTypeDTO update(
             @PathVariable Long id,
             @RequestBody ZoneTypeDTO dto) {
 
-        return ResponseEntity.ok(
-                service.update(id, dto)
-        );
+        return zoneTypeService.update(id, dto);
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
             @PathVariable Long id) {
 
-        service.delete(id);
-
-        return ResponseEntity.noContent().build();
+        zoneTypeService.delete(id);
     }
 }

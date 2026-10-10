@@ -3,9 +3,9 @@ package org.ong.dryforest.modules.zone;
 import org.locationtech.jts.geom.*;
 import org.ong.dryforest.modules.zone.dto.*;
 import org.ong.dryforest.modules.zone.translations.ZoneTranslation;
-import org.ong.dryforest.modules.zone.translations.ZoneTranslationDTO;
+import org.ong.dryforest.modules.zone.dto.ZoneTranslationDTO;
 import org.ong.dryforest.modules.zone.translations.ZoneTypeTranslation;
-import org.ong.dryforest.modules.zone.translations.ZoneTypeTranslationDTO;
+import org.ong.dryforest.modules.zone.dto.ZoneTypeTranslationDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

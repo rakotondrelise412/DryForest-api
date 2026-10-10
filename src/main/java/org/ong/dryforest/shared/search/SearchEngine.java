@@ -84,20 +84,29 @@ public final class SearchEngine {
         }
     }
 
+
     private static Path<?> resolvePath(
             Root<?> root,
-            String fieldPath
-    ) {
-        var parts = fieldPath.split("\\.");
+            String fieldPath) {
 
-        Path<?> path = root;
+        String[] parts = fieldPath.split("\\.");
 
-        for (var part : parts) {
-            path = path.get(part);
+        if (parts.length == 1) {
+            return root.get(parts[0]);
         }
 
-        return path;
+        jakarta.persistence.criteria.From<?, ?> current = root;
+
+        for (int i = 0; i < parts.length - 1; i++) {
+            current = current.join(
+                    parts[i],
+                    jakarta.persistence.criteria.JoinType.LEFT
+            );
+        }
+
+        return current.get(parts[parts.length - 1]);
     }
+
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Predicate buildPredicate(

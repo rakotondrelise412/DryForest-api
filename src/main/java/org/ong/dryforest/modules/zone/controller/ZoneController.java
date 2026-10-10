@@ -1,13 +1,15 @@
 package org.ong.dryforest.modules.zone.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.ong.dryforest.modules.zone.Zone;
+import org.ong.dryforest.modules.zone.ZoneSearchQuery;
 import org.ong.dryforest.modules.zone.dto.ZoneDTO;
 import org.ong.dryforest.modules.zone.service.ZoneService;
+import org.ong.dryforest.shared.search.SearchResult;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -17,60 +19,56 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ZoneController {
 
-    private final ZoneService service;
+    private final ZoneService zoneService;
 
 
     @PostMapping
-    public ResponseEntity<ZoneDTO> create(
+    @ResponseStatus(HttpStatus.CREATED)
+    public ZoneDTO create(
             @RequestBody ZoneDTO dto) {
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(service.create(dto));
+        return zoneService.create(dto);
     }
 
 
     @GetMapping
-    public ResponseEntity<Page<ZoneDTO>> findAll(
-            @PageableDefault(
-                    page = 0,
-                    size = 10
-            )
-            Pageable pageable) {
+    public Page<ZoneDTO> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+            ) {
+        Pageable pageable = PageRequest.of(page, size);
 
-        return ResponseEntity.ok(
-                service.findAll(pageable)
-        );
+        return zoneService.findAll(pageable);
     }
-
 
     @GetMapping("/{uuid}")
-    public ResponseEntity<ZoneDTO> findByUuid(
+    public ZoneDTO findByUuid(
             @PathVariable UUID uuid) {
 
-        return ResponseEntity.ok(
-                service.findByUuid(uuid)
-        );
+        return zoneService.findByUuid(uuid);
     }
 
+    @PostMapping("/search")
+    public SearchResult<Zone> search(
+            @RequestBody ZoneSearchQuery request) {
+
+        return zoneService.search(request);
+    }
 
     @PutMapping("/{uuid}")
-    public ResponseEntity<ZoneDTO> update(
+    public ZoneDTO update(
             @PathVariable UUID uuid,
             @RequestBody ZoneDTO dto) {
 
-        return ResponseEntity.ok(
-                service.update(uuid, dto)
-        );
+        return zoneService.update(uuid, dto);
     }
 
 
     @DeleteMapping("/{uuid}")
-    public ResponseEntity<Void> delete(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
             @PathVariable UUID uuid) {
 
-        service.delete(uuid);
-
-        return ResponseEntity.noContent().build();
+        zoneService.delete(uuid);
     }
 }

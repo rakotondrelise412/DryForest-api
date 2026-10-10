@@ -1,17 +1,16 @@
 package org.ong.dryforest.modules.zone.dto;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.ong.dryforest.modules.zone.translations.ZoneTypeTranslationDTO;
+import lombok.*;
+import org.ong.dryforest.shared.base.AbstractTimestamps;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ZoneTypeDTO {
+public class ZoneTypeDTO extends AbstractTimestamps {
 
     private Long id;
 

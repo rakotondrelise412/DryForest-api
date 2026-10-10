@@ -1,6 +1,7 @@
+
 package org.ong.dryforest.shared.base;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import tools.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,9 +16,9 @@ import java.time.Instant;
 @NoArgsConstructor
 public abstract class AbstractTimestamps implements Serializable {
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonSerialize(using = MadagascarDateTimeSerializer.class)
     private Instant createdAt;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonSerialize(using = MadagascarDateTimeSerializer.class)
     private Instant updatedAt;
 }

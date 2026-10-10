@@ -4,10 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.zone.dto.ZoneNeedDTO;
 import org.ong.dryforest.modules.zone.service.ZoneNeedService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -17,60 +16,51 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ZoneNeedController {
 
-    private final ZoneNeedService service;
+    private final ZoneNeedService zoneNeedService;
 
 
     @PostMapping
-    public ResponseEntity<ZoneNeedDTO> create(
+    @ResponseStatus(HttpStatus.CREATED)
+    public ZoneNeedDTO create(
             @RequestBody ZoneNeedDTO dto) {
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(service.create(dto));
+        return zoneNeedService.create(dto);
     }
 
 
     @GetMapping
-    public ResponseEntity<Page<ZoneNeedDTO>> findAll(
-            @PageableDefault(
-                    page = 0,
-                    size = 10
-            )
-            Pageable pageable) {
+    public Page<ZoneNeedDTO> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+            ) {
+        Pageable pageable = PageRequest.of(page, size);
 
-        return ResponseEntity.ok(
-                service.findAll(pageable)
-        );
+        return zoneNeedService.findAll(pageable);
     }
 
 
     @GetMapping("/{uuid}")
-    public ResponseEntity<ZoneNeedDTO> findByUuid(
+    public ZoneNeedDTO findByUuid(
             @PathVariable UUID uuid) {
 
-        return ResponseEntity.ok(
-                service.findByUuid(uuid)
-        );
+        return zoneNeedService.findByUuid(uuid);
     }
 
 
     @PutMapping("/{uuid}")
-    public ResponseEntity<ZoneNeedDTO> update(
+    public ZoneNeedDTO update(
             @PathVariable UUID uuid,
             @RequestBody ZoneNeedDTO dto) {
 
-        return ResponseEntity.ok(
-                service.update(uuid, dto)
-        );
+        return zoneNeedService.update(uuid, dto);
     }
 
 
     @DeleteMapping("/{uuid}")
-    public ResponseEntity<Void> delete(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
             @PathVariable UUID uuid) {
 
-        service.delete(uuid);
-
-        return ResponseEntity.noContent().build();
+        zoneNeedService.delete(uuid);
     }
 }

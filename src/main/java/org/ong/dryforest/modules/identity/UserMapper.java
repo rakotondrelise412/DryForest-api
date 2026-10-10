@@ -13,22 +13,34 @@ public class UserMapper {
 
         Person person = user.getPerson();
 
-        assert person.getPhoneNumber() != null;
-        return new UserDto(
-                user.getId(),
-                user.getUsername(),
-                null,
-                user.getSalary(),
+        UserDto dto = new UserDto();
 
-                person.getFirstName(),
-                person.getLastName(),
-                person.getGender(),
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
 
-                person.getPhoneNumber(),
-                person.getEmail(),
-                person.getAddress(),
+        dto.setPassword(null);
 
-                null
-        );
+        dto.setSalary(user.getSalary());
+
+        dto.setFirstName(person.getFirstName());
+        dto.setLastName(person.getLastName());
+        dto.setGender(person.getGender());
+        String phoneNumber = person.getPhoneNumber();
+
+        if (phoneNumber == null || phoneNumber.isBlank()) {
+            throw new IllegalStateException(
+                    "Le numéro de téléphone de la personne est absent."
+            );
+        }
+
+        dto.setPhoneNumber(phoneNumber);
+
+        dto.setEmail(person.getEmail());
+        dto.setAddress(person.getAddress());
+
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setUpdatedAt(user.getUpdatedAt());
+
+        return dto;
     }
 }

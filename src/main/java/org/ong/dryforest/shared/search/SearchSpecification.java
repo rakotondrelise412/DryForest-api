@@ -10,9 +10,14 @@ public final class SearchSpecification {
     private SearchSpecification() {
     }
 
+
     public static <T> Specification<T> from(Object filters) {
-        return (root, query, cb) -> SearchEngine.build(filters, cb, root);
+        return (root, query, cb) -> {
+            query.distinct(true);
+            return SearchEngine.build(filters, cb, root);
+        };
     }
+
 
     public static <T> SearchResult<T> filterBy(
             JpaSpecificationExecutor<T> repository,

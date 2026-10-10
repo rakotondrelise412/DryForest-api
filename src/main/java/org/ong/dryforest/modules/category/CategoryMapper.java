@@ -1,5 +1,7 @@
+
 package org.ong.dryforest.modules.category;
 
+import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.category.dto.CategoryDTO;
 import org.ong.dryforest.modules.category.dto.CategoryTranslationDTO;
 import org.ong.dryforest.modules.category.translations.CategoryTranslation;
@@ -7,6 +9,7 @@ import org.ong.dryforest.shared.utils.ServiceUtils;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class CategoryMapper {
 
     public CategoryDTO toDTO(Category category) {
@@ -21,42 +24,44 @@ public class CategoryMapper {
                 .map(this::translationToDTO)
                 .toList();
 
-        return new CategoryDTO(
-                id,
-                translations
-        );
+        var dto = new CategoryDTO(id, translations);
+
+        dto.setCreatedAt(category.getCreatedAt());
+        dto.setUpdatedAt(category.getUpdatedAt());
+
+        return dto;
     }
 
     public CategoryTranslation toTranslation(
             Category category,
             CategoryTranslationDTO translationDTO
-    ){
-        var translations = new CategoryTranslation();
+    ) {
+        var translation = new CategoryTranslation();
 
-        translations.setLocale(
-                translationDTO.getLocale()
-        );
-        translations.setName(
-                translationDTO.getName()
-        );
-        translations.setCategory(category);
+        translation.setLocale(translationDTO.getLocale());
+        translation.setName(translationDTO.getName());
+        translation.setCategory(category);
 
-        return translations;
+        return translation;
     }
 
     private CategoryTranslationDTO translationToDTO(
             CategoryTranslation translation
     ) {
-
         var id = ServiceUtils.requireId(
                 translation.getId(),
                 "CategoryTranslation ID must not be null"
         );
 
-        return new CategoryTranslationDTO(
+        var dto = new CategoryTranslationDTO(
                 id,
                 translation.getLocale(),
                 translation.getName()
         );
+
+        dto.setCreatedAt(translation.getCreatedAt());
+        dto.setUpdatedAt(translation.getUpdatedAt());
+
+        return dto;
     }
 }

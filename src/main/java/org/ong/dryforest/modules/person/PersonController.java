@@ -2,7 +2,6 @@ package org.ong.dryforest.modules.person;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,51 +14,39 @@ public class PersonController {
     private final PersonService personService;
 
     @GetMapping
-    public ResponseEntity<List<PersonDTO>> findAll() {
+    public List<PersonDTO> findAll() {
 
-        return ResponseEntity.ok(
-                personService.findAll()
-        );
+        return personService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PersonDTO> findById(
+    public PersonDTO findById(
             @PathVariable Long id
     ) {
-
-        return ResponseEntity.ok(
-                personService.findById(id)
-        );
+        return personService.findById(id);
     }
 
     @PostMapping
-    public ResponseEntity<PersonDTO> create(
+    @ResponseStatus(HttpStatus.CREATED)
+    public PersonDTO create(
             @RequestBody PersonDTO dto
     ) {
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(personService.create(dto));
+        return personService.create(dto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PersonDTO> update(
+    public PersonDTO update(
             @PathVariable Long id,
             @RequestBody PersonDTO dto
     ) {
-
-        return ResponseEntity.ok(
-                personService.update(id, dto)
-        );
+        return personService.update(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
             @PathVariable Long id
     ) {
-
         personService.delete(id);
-
-        return ResponseEntity.noContent().build();
     }
 }

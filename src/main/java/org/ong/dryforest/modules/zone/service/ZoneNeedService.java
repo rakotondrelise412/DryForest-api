@@ -20,7 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ZoneNeedService {
 
-    private final ZoneNeedRepository repository;
+    private final ZoneNeedRepository zoneNeedRepository;
 
     private final ZoneRepository zoneRepository;
 
@@ -38,26 +38,8 @@ public class ZoneNeedService {
             entity.setUuid(UUID.randomUUID());
         }
 
-        if (entity.getIsSynced() == null) {
-            entity.setIsSynced(false);
-        }
-
-        if (dto.getZoneId() != null) {
-
-            Zone zone =
-                    ServiceUtils.getOrThrow(
-                            () -> zoneRepository.findById(
-                                    dto.getZoneId()
-                            ),
-                            ErrorCode.ZONE_NOT_FOUND,
-                            "Zone introuvable"
-                    );
-
-            entity.setZone(zone);
-        }
-
         return mapper.toDTO(
-                repository.save(entity)
+                zoneNeedRepository.save(entity)
         );
     }
 
@@ -66,7 +48,7 @@ public class ZoneNeedService {
     public Page<ZoneNeedDTO> findAll(
             Pageable pageable) {
 
-        return repository
+        return zoneNeedRepository
                 .findAllByIsDeletedFalse(pageable)
                 .map(mapper::toDTO);
     }
@@ -77,12 +59,7 @@ public class ZoneNeedService {
             UUID uuid) {
 
         ZoneNeed entity =
-                ServiceUtils.getOrThrow(
-                        () -> repository
-                                .findByUuidAndIsDeletedFalse(uuid),
-                        ErrorCode.ZONE_NEED_NOT_FOUND,
-                        "Besoin de zone introuvable"
-                );
+                getZoneNeedOrThrow(uuid);
 
         return mapper.toDTO(entity);
     }
@@ -94,35 +71,25 @@ public class ZoneNeedService {
             ZoneNeedDTO dto) {
 
         ZoneNeed entity =
+                getZoneNeedOrThrow(uuid);
+
+        entity.setIsSynced(
+                dto.getIsSynced()
+        );
+
+        Zone zone =
                 ServiceUtils.getOrThrow(
-                        () -> repository
-                                .findByUuidAndIsDeletedFalse(uuid),
-                        ErrorCode.ZONE_NEED_NOT_FOUND,
-                        "Besoin de zone introuvable"
+                        () -> zoneRepository.findById(
+                                dto.getZoneId()
+                        ),
+                        ErrorCode.ZONE_NOT_FOUND,
+                        "Zone introuvable"
                 );
 
-        if (dto.getIsSynced() != null) {
-            entity.setIsSynced(
-                    dto.getIsSynced()
-            );
-        }
-
-        if (dto.getZoneId() != null) {
-
-            Zone zone =
-                    ServiceUtils.getOrThrow(
-                            () -> zoneRepository.findById(
-                                    dto.getZoneId()
-                            ),
-                            ErrorCode.ZONE_NOT_FOUND,
-                            "Zone introuvable"
-                    );
-
-            entity.setZone(zone);
-        }
+        entity.setZone(zone);
 
         return mapper.toDTO(
-                repository.save(entity)
+                zoneNeedRepository.save(entity)
         );
     }
 
@@ -131,15 +98,22 @@ public class ZoneNeedService {
     public void delete(UUID uuid) {
 
         ZoneNeed entity =
-                ServiceUtils.getOrThrow(
-                        () -> repository
-                                .findByUuidAndIsDeletedFalse(uuid),
-                        ErrorCode.ZONE_NEED_NOT_FOUND,
-                        "Besoin de zone introuvable"
-                );
+                getZoneNeedOrThrow(uuid);
 
         entity.setDeleted(true);
 
-        repository.save(entity);
+        zoneNeedRepository.save(entity);
+    }
+
+
+    private ZoneNeed getZoneNeedOrThrow(
+            UUID uuid) {
+
+        return ServiceUtils.getOrThrow(
+                () -> zoneNeedRepository
+                        .findByUuidAndIsDeletedFalse(uuid),
+                ErrorCode.ZONE_NEED_NOT_FOUND,
+                "Zone need introuvable"
+        );
     }
 }

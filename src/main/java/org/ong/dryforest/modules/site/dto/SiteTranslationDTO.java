@@ -5,12 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.ong.dryforest.enums.Locale;
+import org.ong.dryforest.shared.base.AbstractTimestamps;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SiteTranslationDTO {
+public class SiteTranslationDTO extends AbstractTimestamps {
 
     private Long id;
 

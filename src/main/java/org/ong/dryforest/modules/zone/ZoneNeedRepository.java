@@ -1,6 +1,6 @@
-package org.ong.dryforest.modules.zone.repository;
+package org.ong.dryforest.modules.zone;
 
-import org.ong.dryforest.modules.zone.ZoneNeed;
+import org.ong.dryforest.modules.zone.zoneNeed.ZoneNeed;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

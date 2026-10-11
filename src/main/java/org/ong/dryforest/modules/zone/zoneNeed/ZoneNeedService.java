@@ -1,12 +1,9 @@
-package org.ong.dryforest.modules.zone.service;
+package org.ong.dryforest.modules.zone.zoneNeed;
 
 import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.zone.Zone;
 import org.ong.dryforest.modules.zone.ZoneMapper;
-import org.ong.dryforest.modules.zone.ZoneNeed;
-import org.ong.dryforest.modules.zone.dto.ZoneNeedDTO;
-import org.ong.dryforest.modules.zone.repository.ZoneNeedRepository;
-import org.ong.dryforest.modules.zone.repository.ZoneRepository;
+import org.ong.dryforest.modules.zone.ZoneNeedRepository;
 import org.ong.dryforest.shared.exceptions.ErrorCode;
 import org.ong.dryforest.shared.utils.ServiceUtils;
 import org.springframework.data.domain.Page;

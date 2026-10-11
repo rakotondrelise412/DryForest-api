@@ -1,16 +1,12 @@
-package org.ong.dryforest.modules.zone.service;
+package org.ong.dryforest.modules.zone;
 
 import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.site.Site;
 import org.ong.dryforest.modules.site.SiteRepository;
-import org.ong.dryforest.modules.zone.Zone;
-import org.ong.dryforest.modules.zone.ZoneMapper;
-import org.ong.dryforest.modules.zone.ZoneSearchQuery;
-import org.ong.dryforest.modules.zone.ZoneType;
+import org.ong.dryforest.modules.zone.zoneType.ZoneType;
 import org.ong.dryforest.modules.zone.dto.ZoneDTO;
-import org.ong.dryforest.modules.zone.repository.ZoneRepository;
-import org.ong.dryforest.modules.zone.repository.ZoneTypeRepository;
-import org.ong.dryforest.modules.zone.translations.ZoneTranslation;
+import org.ong.dryforest.modules.zone.zoneNeed.ZoneRepository;
+import org.ong.dryforest.modules.zone.zoneType.ZoneTypeRepository;
 import org.ong.dryforest.shared.exceptions.ErrorCode;
 import org.ong.dryforest.shared.search.SearchResult;
 import org.ong.dryforest.shared.search.SearchSpecification;

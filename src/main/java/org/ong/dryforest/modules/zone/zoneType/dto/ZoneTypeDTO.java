@@ -1,4 +1,4 @@
-package org.ong.dryforest.modules.zone.dto;
+package org.ong.dryforest.modules.zone.zoneType.dto;
 
 
 import lombok.*;

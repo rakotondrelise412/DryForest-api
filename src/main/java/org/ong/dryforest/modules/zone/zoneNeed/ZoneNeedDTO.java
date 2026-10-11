@@ -1,4 +1,4 @@
-package org.ong.dryforest.modules.zone.dto;
+package org.ong.dryforest.modules.zone.zoneNeed;
 
 import lombok.*;
 import org.ong.dryforest.shared.base.AbstractTimestamps;

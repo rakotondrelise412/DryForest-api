@@ -1,4 +1,4 @@
-package org.ong.dryforest.modules.zone.repository;
+package org.ong.dryforest.modules.zone.zoneNeed;
 
 import org.ong.dryforest.modules.zone.Zone;
 import org.springframework.data.domain.Page;

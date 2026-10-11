@@ -31,17 +31,14 @@ public class SiteMapper {
                 .map(this::translationToDTO)
                 .toList();
 
-        PointDTO location = null;
+        PointDTO location;
 
-        if (site.getLocation() != null) {
+        Point point = site.getLocation();
 
-            Point point = site.getLocation();
-
-            location = new PointDTO(
-                    point.getY(),
-                    point.getX()
-            );
-        }
+        location = new PointDTO(
+                point.getY(),
+                point.getX()
+        );
 
         SiteDTO dto = new SiteDTO();
 
@@ -56,21 +53,18 @@ public class SiteMapper {
 
         Site site = new Site();
 
-        if (dto.getLocation() != null) {
+        PointDTO location = dto.getLocation();
 
-            PointDTO location = dto.getLocation();
+        Point point = geometryFactory.createPoint(
+                new Coordinate(
+                        location.longitude(),
+                        location.latitude()
+                )
+        );
 
-            Point point = geometryFactory.createPoint(
-                    new Coordinate(
-                            location.longitude(),
-                            location.latitude()
-                    )
-            );
+        point.setSRID(4326);
 
-            point.setSRID(4326);
-
-            site.setLocation(point);
-        }
+        site.setLocation(point);
 
         return site;
     }

@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 import org.locationtech.jts.geom.Polygon;
 import org.ong.dryforest.modules.plantation.PlantationBlock;
 import org.ong.dryforest.modules.site.Site;
-import org.ong.dryforest.modules.zone.translations.ZoneTranslation;
+import org.ong.dryforest.modules.zone.zoneType.ZoneType;
 import org.ong.dryforest.shared.base.AbstractEntity;
 
 import java.util.ArrayList;

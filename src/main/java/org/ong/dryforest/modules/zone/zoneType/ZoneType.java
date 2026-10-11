@@ -1,11 +1,10 @@
-package org.ong.dryforest.modules.zone;
+package org.ong.dryforest.modules.zone.zoneType;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.ong.dryforest.modules.zone.translations.ZoneTypeTranslation;
 import org.ong.dryforest.shared.base.AbstractEntity;
 
 import java.util.ArrayList;

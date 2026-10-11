@@ -1,10 +1,7 @@
-package org.ong.dryforest.modules.zone.controller;
+package org.ong.dryforest.modules.zone;
 
 import lombok.RequiredArgsConstructor;
-import org.ong.dryforest.modules.zone.Zone;
-import org.ong.dryforest.modules.zone.ZoneSearchQuery;
 import org.ong.dryforest.modules.zone.dto.ZoneDTO;
-import org.ong.dryforest.modules.zone.service.ZoneService;
 import org.ong.dryforest.shared.search.SearchResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

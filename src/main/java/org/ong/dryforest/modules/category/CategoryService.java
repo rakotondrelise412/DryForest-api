@@ -1,4 +1,3 @@
-
 package org.ong.dryforest.modules.category;
 
 import lombok.RequiredArgsConstructor;
@@ -15,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -22,6 +22,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final CategoryTranslationValidator translationValidator;
 
     @Transactional(readOnly = true)
     public Page<CategoryDTO> getAll(Pageable pageable) {
@@ -35,39 +36,54 @@ public class CategoryService {
     }
 
     public CategoryDTO create(CategoryDTO categoryDTO) {
+        translationValidator.validateUniqueTranslationsForCreate(
+                categoryDTO.getTranslations()
+        );
+
         Category category = new Category();
 
         saveTranslations(category, categoryDTO.getTranslations());
+
+        translationValidator.ensureFrenchTranslation(category);
 
         Category savedCategory = categoryRepository.save(category);
 
         return categoryMapper.toDTO(savedCategory);
     }
 
+
     public CategoryDTO update(Long id, CategoryDTO categoryDTO) {
         Category category = getCategoryOrThrow(id);
 
-        category.getTranslations().clear();
+        translationValidator.validateUniqueTranslationsForUpdate(
+                category,
+                categoryDTO.getTranslations(),
+                id
+        );
+
         saveTranslations(category, categoryDTO.getTranslations());
+
+        translationValidator.ensureFrenchTranslation(category);
 
         categoryRepository.flush();
 
         return categoryMapper.toDTO(category);
     }
 
+
     public void delete(Long id) {
         Category category = getCategoryOrThrow(id);
         categoryRepository.delete(category);
     }
 
-
     @Transactional(readOnly = true)
-    public SearchResult<CategoryDTO> search(CategorySearchQuery request) {
+    public SearchResult<CategoryDTO> search(
+            CategorySearchQuery request
+    ) {
         return SearchSpecification
                 .filterBy(categoryRepository, request)
                 .map(categoryMapper::toDTO);
     }
-
 
     private Category getCategoryOrThrow(Long id) {
         return ServiceUtils.getOrThrow(
@@ -79,10 +95,30 @@ public class CategoryService {
 
     private void saveTranslations(
             Category category,
-            List<CategoryTranslationDTO> translationDTOs) {
+            List<CategoryTranslationDTO> translationDTOs
+    ) {
 
-        translationDTOs.stream()
-                .map(dto -> categoryMapper.toTranslation(category, dto))
-                .forEach(category.getTranslations()::add);
+        for (CategoryTranslationDTO dto : translationDTOs) {
+            if (dto.getName().isBlank()) {
+                continue;
+            }
+
+            CategoryTranslation translation =
+                    category.getTranslations().stream()
+                            .filter(t -> t.getLocale() == dto.getLocale())
+                            .findFirst()
+                            .orElse(null);
+
+            if (translation == null) {
+                translation = categoryMapper.toTranslation(
+                        category, dto
+                );
+
+                category.getTranslations().add(translation);
+            } else {
+                translation.setName(dto.getName().trim());
+            }
+        }
     }
+
 }

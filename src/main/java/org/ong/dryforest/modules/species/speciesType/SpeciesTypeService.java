@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -21,6 +22,7 @@ public class SpeciesTypeService {
 
     private final SpeciesTypeRepository speciesTypeRepository;
     private final SpeciesTypeMapper speciesTypeMapper;
+    private final SpeciesTypeTranslationValidator translationValidator;
 
     @Transactional(readOnly = true)
     public Page<SpeciesTypeDTO> getAll(Pageable pageable) {
@@ -33,7 +35,12 @@ public class SpeciesTypeService {
         return speciesTypeMapper.toDTO(getSpeciesTypeOrThrow(id));
     }
 
+
     public SpeciesTypeDTO create(SpeciesTypeDTO speciesTypeDTO) {
+        translationValidator.validateUniqueTranslationsForCreate(
+                speciesTypeDTO.getTranslations()
+        );
+
         SpeciesType speciesType = new SpeciesType();
 
         saveTranslations(
@@ -41,11 +48,15 @@ public class SpeciesTypeService {
                 speciesTypeDTO.getTranslations()
         );
 
+        translationValidator.ensureFrenchTranslation(speciesType);
+
         SpeciesType savedSpeciesType =
                 speciesTypeRepository.save(speciesType);
 
         return speciesTypeMapper.toDTO(savedSpeciesType);
     }
+
+
 
     public SpeciesTypeDTO update(
             Long id,
@@ -53,19 +64,24 @@ public class SpeciesTypeService {
     ) {
         SpeciesType speciesType = getSpeciesTypeOrThrow(id);
 
-        speciesType.getTranslations().clear();
-
-        speciesTypeRepository.flush();
+        translationValidator.validateUniqueTranslationsForUpdate(
+                speciesType,
+                speciesTypeDTO.getTranslations(),
+                id
+        );
 
         saveTranslations(
                 speciesType,
                 speciesTypeDTO.getTranslations()
         );
 
+        translationValidator.ensureFrenchTranslation(speciesType);
+
         speciesTypeRepository.flush();
 
         return speciesTypeMapper.toDTO(speciesType);
     }
+
 
     public void delete(Long id) {
         SpeciesType speciesType = getSpeciesTypeOrThrow(id);
@@ -89,17 +105,40 @@ public class SpeciesTypeService {
         );
     }
 
+
+
     private void saveTranslations(
             SpeciesType speciesType,
             List<SpeciesTypeTranslationDTO> translationDTOs
     ) {
+        for (SpeciesTypeTranslationDTO dto : translationDTOs) {
 
-        translationDTOs.stream()
-                .map(dto -> speciesTypeMapper.toTranslation(
+            if (dto.getName().isBlank()) {
+                continue;
+            }
+
+            String name = dto.getName().trim();
+
+            SpeciesTypeTranslation translation =
+                    speciesType.getTranslations().stream()
+                            .filter(t -> t.getLocale() == dto.getLocale())
+                            .findFirst()
+                            .orElse(null);
+
+            if (translation == null) {
+                translation = speciesTypeMapper.toTranslation(
                         speciesType,
                         dto
-                ))
-                .forEach(speciesType.getTranslations()::add);
+                );
+
+                translation.setName(name);
+                speciesType.getTranslations().add(translation);
+            } else {
+                translation.setName(name);
+            }
+        }
     }
+
 }
+
 

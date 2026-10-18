@@ -11,9 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
-
 
 @Service
 @RequiredArgsConstructor
@@ -22,75 +22,51 @@ public class ZoneTypeService {
 
     private final ZoneTypeRepository zoneTypeRepository;
     private final ZoneTypeMapper zoneTypeMapper;
+    private final ZoneTypeTranslationValidator translationValidator;
 
     @Transactional(readOnly = true)
     public Page<ZoneTypeDTO> getAll(Pageable pageable) {
-        return zoneTypeRepository
-                .findAllByIsDeletedFalse(pageable)
+        return zoneTypeRepository.findAllByIsDeletedFalse(pageable)
                 .map(zoneTypeMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
     public ZoneTypeDTO getById(Long id) {
-        return zoneTypeMapper.toDTO(
-                getZoneTypeOrThrow(id)
-        );
+        return zoneTypeMapper.toDTO(getZoneTypeOrThrow(id));
     }
 
     public ZoneTypeDTO create(ZoneTypeDTO dto) {
+        List<ZoneTypeTranslationDTO> translations = dto.getTranslations();
+
+        translationValidator.validateForCreate(translations);
 
         ZoneType zoneType = zoneTypeMapper.toEntity(dto);
+        saveTranslations(zoneType, translations);
 
-        saveTranslations(
-                zoneType,
-                dto.getTranslations()
-        );
-
-        ZoneType savedZoneType =
-                zoneTypeRepository.save(zoneType);
-
-        return zoneTypeMapper.toDTO(savedZoneType);
+        return zoneTypeMapper.toDTO(zoneTypeRepository.save(zoneType));
     }
 
-    public ZoneTypeDTO update(
-            Long id,
-            ZoneTypeDTO dto
-    ) {
+    public ZoneTypeDTO update(Long id, ZoneTypeDTO dto) {
         ZoneType zoneType = getZoneTypeOrThrow(id);
+        List<ZoneTypeTranslationDTO> translations = dto.getTranslations();
+
+        translationValidator.validateForUpdate(id, translations);
 
         zoneType.setName(dto.getName());
+        saveTranslations(zoneType, translations);
 
-        zoneType.getTranslations().clear();
-
-        // Supprime les anciennes traductions avant
-        // d'en ajouter de nouvelles.
-        zoneTypeRepository.flush();
-
-        saveTranslations(
-                zoneType,
-                dto.getTranslations()
-        );
-
-        zoneTypeRepository.flush();
-
-        return zoneTypeMapper.toDTO(zoneType);
+        return zoneTypeMapper.toDTO(zoneTypeRepository.save(zoneType));
     }
 
     public void delete(Long id) {
         ZoneType zoneType = getZoneTypeOrThrow(id);
-
         zoneType.setDeleted(true);
-
         zoneTypeRepository.save(zoneType);
     }
 
-
     @Transactional(readOnly = true)
-    public SearchResult<ZoneTypeDTO> search(
-            ZoneTypeSearchQuery request
-    ) {
-        if (!request.getName().isBlank()) {
-
+    public SearchResult<ZoneTypeDTO> search(ZoneTypeSearchQuery request) {
+        if (StringUtils.hasText(request.getName())) {
             request.setTranslationName(request.getName());
         }
 
@@ -99,11 +75,9 @@ public class ZoneTypeService {
                 .map(zoneTypeMapper::toDTO);
     }
 
-
     private ZoneType getZoneTypeOrThrow(Long id) {
         return ServiceUtils.getOrThrow(
-                () -> zoneTypeRepository
-                        .findByIdAndIsDeletedFalse(id),
+                () -> zoneTypeRepository.findByIdAndIsDeletedFalse(id),
                 ErrorCode.ZONE_TYPE_NOT_FOUND,
                 "ZoneType not found with id: " + id
         );
@@ -113,12 +87,26 @@ public class ZoneTypeService {
             ZoneType zoneType,
             List<ZoneTypeTranslationDTO> translationDTOs
     ) {
+        for (ZoneTypeTranslationDTO dto : translationDTOs) {
+            if (!StringUtils.hasText(dto.getName())) {
+                continue;
+            }
 
-        translationDTOs.stream()
-                .map(dto -> zoneTypeMapper.toTranslation(
-                        zoneType,
-                        dto
-                ))
-                .forEach(zoneType.getTranslations()::add);
+            var existing = zoneType.getTranslations()
+                    .stream()
+                    .filter(translation ->
+                            translation.getLocale() == dto.getLocale()
+                    )
+                    .findFirst()
+                    .orElse(null);
+
+            if (existing == null) {
+                zoneType.getTranslations().add(
+                        zoneTypeMapper.toTranslation(zoneType, dto)
+                );
+            } else {
+                existing.setName(dto.getName().trim());
+            }
+        }
     }
 }

@@ -1,13 +1,11 @@
 package org.ong.dryforest.modules.zone.zoneType;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.ong.dryforest.shared.search.AbstractSearchQuery;
 import org.ong.dryforest.shared.search.Searchable;
-
 
 @Getter
 @Setter
@@ -37,6 +35,3 @@ public class ZoneTypeSearchQuery extends AbstractSearchQuery {
         return ZoneType.class;
     }
 }
-
-
-

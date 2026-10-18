@@ -1,18 +1,14 @@
 package org.ong.dryforest.modules.zone.zoneType;
 
-
-import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.zone.zoneType.dto.ZoneTypeDTO;
 import org.ong.dryforest.modules.zone.zoneType.dto.ZoneTypeTranslationDTO;
 import org.ong.dryforest.shared.utils.ServiceUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class ZoneTypeMapper {
 
     public ZoneTypeDTO toDTO(ZoneType zoneType) {
-
         var id = ServiceUtils.requireId(
                 zoneType.getId(),
                 "ZoneType ID must not be null"
@@ -36,11 +32,8 @@ public class ZoneTypeMapper {
     }
 
     public ZoneType toEntity(ZoneTypeDTO dto) {
-
         var zoneType = new ZoneType();
-
         zoneType.setName(dto.getName());
-
         return zoneType;
     }
 
@@ -51,7 +44,7 @@ public class ZoneTypeMapper {
         var translation = new ZoneTypeTranslation();
 
         translation.setLocale(translationDTO.getLocale());
-        translation.setName(translationDTO.getName());
+        translation.setName(translationDTO.getName().trim());
         translation.setZoneType(zoneType);
 
         return translation;
@@ -77,4 +70,3 @@ public class ZoneTypeMapper {
         return dto;
     }
 }
-

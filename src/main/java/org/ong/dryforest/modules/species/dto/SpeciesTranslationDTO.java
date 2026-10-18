@@ -1,3 +1,4 @@
+
 package org.ong.dryforest.modules.species.dto;
 
 import lombok.AllArgsConstructor;
@@ -14,6 +15,8 @@ import org.ong.dryforest.shared.base.AbstractTimestamps;
 public class SpeciesTranslationDTO extends AbstractTimestamps {
 
     private Long id;
+
     private Locale locale;
+
     private String name;
 }

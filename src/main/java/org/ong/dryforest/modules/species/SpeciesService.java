@@ -1,6 +1,7 @@
 package org.ong.dryforest.modules.species;
 
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.ong.dryforest.modules.species.dto.SpeciesDTO;
 import org.ong.dryforest.modules.species.dto.SpeciesTranslationDTO;
 import org.ong.dryforest.modules.species.speciesType.SpeciesType;
@@ -24,6 +25,7 @@ public class SpeciesService {
     private final SpeciesRepository speciesRepository;
     private final SpeciesTypeRepository speciesTypeRepository;
     private final SpeciesMapper speciesMapper;
+    private final SpeciesTranslationValidator translationValidator;
 
     @Transactional(readOnly = true)
     public Page<SpeciesDTO> getAll(Pageable pageable) {
@@ -37,19 +39,21 @@ public class SpeciesService {
     }
 
     public SpeciesDTO create(SpeciesDTO dto) {
+        List<SpeciesTranslationDTO> translations = dto.getTranslations();
 
-        Species species = new Species();
-
-        species.setScientificName(dto.getScientificName());
-        species.setDensity(
-                dto.getDensity()
+        translationValidator.validateUniqueTranslationsForCreate(
+                translations
         );
 
+        Species species = new Species();
+        species.setScientificName(dto.getScientificName());
+        species.setDensity(dto.getDensity());
         species.setSpeciesType(
                 getSpeciesTypeOrNull(dto.getSpeciesTypeId())
         );
 
-        saveTranslations(species, dto.getTranslations());
+        saveTranslations(species, translations);
+        translationValidator.ensureFrenchTranslation(species);
 
         Species savedSpecies = speciesRepository.save(species);
 
@@ -57,23 +61,23 @@ public class SpeciesService {
     }
 
     public SpeciesDTO update(Long id, SpeciesDTO dto) {
-
         Species species = getSpeciesOrThrow(id);
+        List<SpeciesTranslationDTO> translations = dto.getTranslations();
 
-        species.setScientificName(dto.getScientificName());
-        species.setDensity(
-                dto.getDensity()
+        translationValidator.validateUniqueTranslationsForUpdate(
+                species,
+                translations,
+                id
         );
 
+        species.setScientificName(dto.getScientificName());
+        species.setDensity(dto.getDensity());
         species.setSpeciesType(
                 getSpeciesTypeOrNull(dto.getSpeciesTypeId())
         );
 
-        species.getTranslations().clear();
-
-        speciesRepository.flush();
-
-        saveTranslations(species, dto.getTranslations());
+        saveTranslations(species, translations);
+        translationValidator.ensureFrenchTranslation(species);
 
         speciesRepository.flush();
 
@@ -81,14 +85,11 @@ public class SpeciesService {
     }
 
     public void delete(Long id) {
-        Species species = getSpeciesOrThrow(id);
-        speciesRepository.delete(species);
+        speciesRepository.delete(getSpeciesOrThrow(id));
     }
 
     @Transactional(readOnly = true)
-    public SearchResult<SpeciesDTO> search(
-            SpeciesSearchQuery request
-    ) {
+    public SearchResult<SpeciesDTO> search(SpeciesSearchQuery request) {
         return SearchSpecification
                 .filterBy(speciesRepository, request)
                 .map(speciesMapper::toDTO);
@@ -102,7 +103,11 @@ public class SpeciesService {
         );
     }
 
-    private SpeciesType getSpeciesTypeOrNull(Long speciesTypeId) {
+    @Nullable
+    private SpeciesType getSpeciesTypeOrNull(@Nullable Long speciesTypeId) {
+        if (speciesTypeId == null) {
+            return null;
+        }
 
         return ServiceUtils.getOrThrow(
                 () -> speciesTypeRepository.findById(speciesTypeId),
@@ -115,9 +120,26 @@ public class SpeciesService {
             Species species,
             List<SpeciesTranslationDTO> translationDTOs
     ) {
+        for (SpeciesTranslationDTO dto : translationDTOs) {
+            if (dto.getName().isBlank()) {
+                continue;
+            }
 
-        translationDTOs.stream()
-                .map(dto -> speciesMapper.toTranslation(species, dto))
-                .forEach(species.getTranslations()::add);
+            String name = dto.getName().trim();
+
+            var translation = species.getTranslations()
+                    .stream()
+                    .filter(t -> t.getLocale() == dto.getLocale())
+                    .findFirst()
+                    .orElse(null);
+
+            if (translation == null) {
+                translation = speciesMapper.toTranslation(species, dto);
+                translation.setName(name);
+                species.getTranslations().add(translation);
+            } else {
+                translation.setName(name);
+            }
+        }
     }
 }

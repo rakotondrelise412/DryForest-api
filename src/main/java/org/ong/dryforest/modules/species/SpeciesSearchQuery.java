@@ -1,3 +1,4 @@
+
 package org.ong.dryforest.modules.species;
 
 import lombok.AllArgsConstructor;
@@ -16,9 +17,7 @@ public class SpeciesSearchQuery extends AbstractSearchQuery {
     @Searchable
     private Long id;
 
-    @Searchable(
-            type = Searchable.Type.CONTAINS
-    )
+    @Searchable(type = Searchable.Type.CONTAINS)
     private String scientificName;
 
     @Searchable(
@@ -27,9 +26,7 @@ public class SpeciesSearchQuery extends AbstractSearchQuery {
     )
     private String name;
 
-    @Searchable(
-            field = "speciesType.id"
-    )
+    @Searchable(field = "speciesType.id")
     private Long speciesTypeId;
 
     @Override

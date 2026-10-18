@@ -1,6 +1,12 @@
+
 package org.ong.dryforest.modules.species;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,15 +26,22 @@ import java.util.List;
 @Getter
 @Setter
 public class Species extends AbstractEntity {
+
     private String scientificName;
+
     private Double density = 0.0;
 
+    @Nullable
     @ManyToOne
-    private @Nullable SpeciesType speciesType;
+    private SpeciesType speciesType;
 
     @ManyToMany(mappedBy = "species")
     private List<Site> sites = new ArrayList<>();
 
-    @OneToMany(mappedBy = "species", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "species",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<SpeciesTranslation> translations = new ArrayList<>();
 }

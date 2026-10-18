@@ -1,6 +1,9 @@
 package org.ong.dryforest.modules.zone.zoneNeed;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.ong.dryforest.shared.base.AbstractTimestamps;
 
 import java.util.UUID;

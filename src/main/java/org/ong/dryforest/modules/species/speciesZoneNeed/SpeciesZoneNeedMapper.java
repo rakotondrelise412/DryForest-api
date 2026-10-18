@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.species.Species;
 import org.ong.dryforest.modules.species.SpeciesRepository;
 import org.ong.dryforest.modules.zone.zoneNeed.ZoneNeed;
-import org.ong.dryforest.modules.zone.ZoneNeedRepository;
+import org.ong.dryforest.modules.zone.zoneNeed.ZoneNeedRepository;
 import org.ong.dryforest.shared.exceptions.ErrorCode;
 import org.ong.dryforest.shared.utils.ServiceUtils;
 import org.springframework.stereotype.Component;

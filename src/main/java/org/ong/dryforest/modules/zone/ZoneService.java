@@ -5,7 +5,6 @@ import org.ong.dryforest.modules.site.Site;
 import org.ong.dryforest.modules.site.SiteRepository;
 import org.ong.dryforest.modules.zone.zoneType.ZoneType;
 import org.ong.dryforest.modules.zone.dto.ZoneDTO;
-import org.ong.dryforest.modules.zone.zoneNeed.ZoneRepository;
 import org.ong.dryforest.modules.zone.zoneType.ZoneTypeRepository;
 import org.ong.dryforest.shared.exceptions.ErrorCode;
 import org.ong.dryforest.shared.search.SearchResult;

@@ -1,8 +1,8 @@
+
 package org.ong.dryforest.modules.severity;
 
 import org.ong.dryforest.modules.severity.dto.SeverityDTO;
 import org.ong.dryforest.modules.severity.dto.SeverityTranslationDTO;
-import org.ong.dryforest.modules.severity.translations.SeverityTranslation;
 import org.ong.dryforest.shared.utils.ServiceUtils;
 import org.springframework.stereotype.Component;
 
@@ -21,47 +21,44 @@ public class SeverityMapper {
                 .map(this::translationToDTO)
                 .toList();
 
-        return new SeverityDTO(
-                id,
-                translations
-        );
-    }
+        var dto = new SeverityDTO(id, translations);
 
+        dto.setCreatedAt(severity.getCreatedAt());
+        dto.setUpdatedAt(severity.getUpdatedAt());
+
+        return dto;
+    }
 
     public SeverityTranslation toTranslation(
             Severity severity,
-            SeverityTranslationDTO translationDTO
-    ) {
+            SeverityTranslationDTO translationDTO) {
 
         var translation = new SeverityTranslation();
 
-        translation.setLocale(
-                translationDTO.getLocale()
-        );
-
-        translation.setName(
-                translationDTO.getName()
-        );
-
+        translation.setLocale(translationDTO.getLocale());
+        translation.setName(translationDTO.getName());
         translation.setSeverity(severity);
 
         return translation;
     }
 
-
     private SeverityTranslationDTO translationToDTO(
-            SeverityTranslation translation
-    ) {
+            SeverityTranslation translation) {
 
         var id = ServiceUtils.requireId(
                 translation.getId(),
                 "SeverityTranslation ID must not be null"
         );
 
-        return new SeverityTranslationDTO(
+        var dto = new SeverityTranslationDTO(
                 id,
                 translation.getLocale(),
                 translation.getName()
         );
+
+        dto.setCreatedAt(translation.getCreatedAt());
+        dto.setUpdatedAt(translation.getUpdatedAt());
+
+        return dto;
     }
 }

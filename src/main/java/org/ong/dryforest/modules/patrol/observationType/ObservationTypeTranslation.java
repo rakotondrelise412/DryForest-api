@@ -14,10 +14,11 @@ import org.ong.dryforest.shared.base.AbstractTranslation;
 @Getter
 @Setter
 public class ObservationTypeTranslation extends AbstractTranslation {
+
     @Column(nullable = false)
     private String name;
 
-    @ManyToOne
-    @JoinColumn(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "observation_type_id", nullable = false)
     private ObservationType observationType;
 }

@@ -1,11 +1,10 @@
-package org.ong.dryforest.modules.site.translation;
+package org.ong.dryforest.modules.site;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.ong.dryforest.modules.site.Site;
 import org.ong.dryforest.shared.base.AbstractTranslation;
 
 @Entity

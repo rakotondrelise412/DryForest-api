@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.ong.dryforest.modules.person.Person;
-import org.ong.dryforest.modules.site.translation.SiteTranslation;
 import org.ong.dryforest.modules.species.Species;
 import org.ong.dryforest.shared.base.AbstractEntity;
 import org.locationtech.jts.geom.Point;

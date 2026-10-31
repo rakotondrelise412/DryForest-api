@@ -3,8 +3,9 @@ package org.ong.dryforest.modules.site;
 import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.site.dto.SiteDTO;
 import org.ong.dryforest.modules.site.dto.SiteTranslationDTO;
-import org.ong.dryforest.modules.site.translation.SiteTranslation;
 import org.ong.dryforest.shared.exceptions.ErrorCode;
+import org.ong.dryforest.shared.search.SearchResult;
+import org.ong.dryforest.shared.search.SearchSpecification;
 import org.ong.dryforest.shared.utils.ServiceUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +20,8 @@ import java.util.List;
 public class SiteService {
 
     private final SiteRepository siteRepository;
-
     private final SiteMapper siteMapper;
-
-
+    private final SiteTranslationValidator translationValidator;
 
     @Transactional(readOnly = true)
     public Page<SiteDTO> getAll(Pageable pageable) {
@@ -31,31 +30,29 @@ public class SiteService {
                 .map(siteMapper::toDTO);
     }
 
-
     @Transactional(readOnly = true)
     public SiteDTO getById(Long id) {
 
-        Site site = getSiteOrThrow(id);
-
-        return siteMapper.toDTO(site);
+        return siteMapper.toDTO(getSiteOrThrow(id));
     }
-
 
     public SiteDTO create(SiteDTO siteDTO) {
 
+        translationValidator.validateUniqueTranslationsForCreate(
+                siteDTO.getTranslations()
+        );
+
         Site site = siteMapper.toEntity(siteDTO);
 
-        addTranslations(
+        saveTranslations(
                 site,
                 siteDTO.getTranslations()
         );
 
-        Site savedSite =
-                siteRepository.save(site);
+        Site savedSite = siteRepository.save(site);
 
         return siteMapper.toDTO(savedSite);
     }
-
 
     public SiteDTO update(
             Long id,
@@ -64,81 +61,25 @@ public class SiteService {
 
         Site site = getSiteOrThrow(id);
 
-        site.setLocation(
-                siteMapper.toEntity(siteDTO)
-                        .getLocation()
+        translationValidator.validateUniqueTranslationsForUpdate(
+                site,
+                siteDTO.getTranslations(),
+                id
         );
 
-        updateTranslations(
+        site.setLocation(
+                siteMapper.toEntity(siteDTO).getLocation()
+        );
+
+        saveTranslations(
                 site,
                 siteDTO.getTranslations()
         );
 
-        Site updatedSite =
-                siteRepository.saveAndFlush(site);
+        siteRepository.flush();
 
-
-        return siteMapper.toDTO(updatedSite);
+        return siteMapper.toDTO(site);
     }
-
-
-    private void updateTranslations(
-            Site site,
-            List<SiteTranslationDTO> translationDTOs
-    ) {
-
-        for (SiteTranslationDTO dto : translationDTOs) {
-
-            SiteTranslation translation =
-                    site.getTranslations()
-                            .stream()
-                            .filter(t ->
-                                    t.getLocale()
-                                            .equals(dto.getLocale())
-                            )
-                            .findFirst()
-                            .orElse(null);
-
-            if (translation != null) {
-
-                translation.setName(
-                        dto.getName()
-                );
-
-            }
-            else {
-
-                SiteTranslation newTranslation =
-                        siteMapper.toTranslation(
-                                site,
-                                dto
-                        );
-
-                site.getTranslations()
-                        .add(newTranslation);
-            }
-        }
-    }
-
-
-    private void addTranslations(
-            Site site,
-            List<SiteTranslationDTO> translationDTOs
-    ) {
-
-        for (SiteTranslationDTO dto : translationDTOs) {
-
-            SiteTranslation translation =
-                    siteMapper.toTranslation(
-                            site,
-                            dto
-                    );
-
-            site.getTranslations()
-                    .add(translation);
-        }
-    }
-
 
     public void delete(Long id) {
 
@@ -147,6 +88,15 @@ public class SiteService {
         siteRepository.delete(site);
     }
 
+    @Transactional(readOnly = true)
+    public SearchResult<SiteDTO> search(
+            SiteSearchQuery request
+    ) {
+
+        return SearchSpecification
+                .filterBy(siteRepository, request)
+                .map(siteMapper::toDTO);
+    }
 
     private Site getSiteOrThrow(Long id) {
 
@@ -155,5 +105,38 @@ public class SiteService {
                 ErrorCode.SITE_NOT_FOUND,
                 "Site not found with id: " + id
         );
+    }
+
+    private void saveTranslations(
+            Site site,
+            List<SiteTranslationDTO> translationDTOs
+    ) {
+
+        for (SiteTranslationDTO dto : translationDTOs) {
+
+            if (dto.getName().isBlank()) {
+                continue;
+            }
+
+            SiteTranslation translation =
+                    site.getTranslations().stream()
+                            .filter(t -> t.getLocale() == dto.getLocale())
+                            .findFirst()
+                            .orElse(null);
+
+            if (translation == null) {
+
+                translation = siteMapper.toTranslation(
+                        site,
+                        dto
+                );
+
+                site.getTranslations().add(translation);
+
+            } else {
+
+                translation.setName(dto.getName().trim());
+            }
+        }
     }
 }

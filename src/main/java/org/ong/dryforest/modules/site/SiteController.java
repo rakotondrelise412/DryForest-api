@@ -2,9 +2,11 @@ package org.ong.dryforest.modules.site;
 
 import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.site.dto.SiteDTO;
+import org.ong.dryforest.shared.search.SearchResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +23,11 @@ public class SiteController {
             @RequestParam(defaultValue = "10") int size
     ) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
 
         return siteService.getAll(pageable);
     }
@@ -37,11 +43,19 @@ public class SiteController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public SiteDTO create(
-            @RequestBody SiteDTO siteDTO) {
+            @RequestBody SiteDTO siteDTO
+    ) {
 
         return siteService.create(siteDTO);
     }
 
+    @PostMapping("/search")
+    public SearchResult<SiteDTO> search(
+            @RequestBody SiteSearchQuery request
+    ) {
+
+        return siteService.search(request);
+    }
 
     @PutMapping("/{id}")
     public SiteDTO update(

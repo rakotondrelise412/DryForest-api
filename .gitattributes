@@ -1,2 +1,9 @@
+
+# Default: LF for source files
+* text=auto eol=lf
+
+# Maven Wrapper
 /mvnw text eol=lf
+
+# Windows commands
 *.cmd text eol=crlf

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
+import org.ong.dryforest.modules.reforestation.reforestationDetail.ReforestationDetail;
 import org.ong.dryforest.modules.zone.Zone;
 import org.ong.dryforest.shared.base.AbstractEntity;
 

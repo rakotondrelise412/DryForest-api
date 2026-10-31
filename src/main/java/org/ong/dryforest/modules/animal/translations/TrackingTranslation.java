@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
-import org.ong.dryforest.modules.animal.Tracking;
+import org.ong.dryforest.modules.animal.tracking.Tracking;
 import org.ong.dryforest.shared.base.AbstractTranslation;
 
 @Entity

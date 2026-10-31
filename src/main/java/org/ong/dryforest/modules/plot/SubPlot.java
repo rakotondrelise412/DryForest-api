@@ -7,8 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.locationtech.jts.geom.Point;
-import org.ong.dryforest.modules.plantation.PlantationBlock;
-import org.ong.dryforest.modules.plot.translations.SubPlotTranslation;
+import org.ong.dryforest.modules.plantation.plantationBlock.PlantationBlock;
 import org.ong.dryforest.shared.base.AbstractEntity;
 
 import java.util.ArrayList;

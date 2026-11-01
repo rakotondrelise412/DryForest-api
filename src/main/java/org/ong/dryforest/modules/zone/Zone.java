@@ -23,26 +23,36 @@ import java.util.UUID;
 @Getter
 @Setter
 public class Zone extends AbstractEntity {
+
     private Double area = 0.0;
+
     private Boolean isSynced = false;
 
     @Column(columnDefinition = "uuid")
     private @Nullable UUID uuid;
 
-    @Column(columnDefinition = "GEOMETRY(polygon, 4326)")
+    @Column(columnDefinition = "GEOMETRY(Polygon, 4326)")
     private @Nullable Polygon geom;
 
-    @ManyToOne
-    @JoinColumn(name = "type_zone_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "type_zone_id", nullable = false)
     private ZoneType typeZone;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "site_id", nullable = false)
     private Site site;
 
-    @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "zone",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<PlantationBlock> plantationBlocks = new ArrayList<>();
 
-    @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "zone",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<ZoneTranslation> translations = new ArrayList<>();
 }

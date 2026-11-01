@@ -1,5 +1,8 @@
 package org.ong.dryforest.modules.zone.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.ong.dryforest.shared.base.AbstractTimestamps;
 
@@ -26,5 +29,6 @@ public class ZoneDTO extends AbstractTimestamps {
 
     private PolygonDTO geom;
 
-    private List<ZoneTranslationDTO> translations;
+    @NotEmpty(message = "Au moins une traduction est obligatoire.")
+    private List<@NotNull @Valid ZoneTranslationDTO> translations;
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.ong.dryforest.shared.search.AbstractSearchQuery;
+import org.ong.dryforest.shared.search.Searchable;
 
 import java.util.UUID;
 
@@ -14,12 +15,24 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ZoneSearchQuery extends AbstractSearchQuery {
 
+    @Searchable
+    private Long id;
+
+    @Searchable
+    private UUID uuid;
+
+    @Searchable
     private Double area;
 
-    private UUID uuid;
+    @Searchable(
+            field = "translations.name",
+            type = Searchable.Type.CONTAINS
+    )
+    private String name;
 
     @Override
     protected Class<?> getEntityClass() {
+
         return Zone.class;
     }
 }

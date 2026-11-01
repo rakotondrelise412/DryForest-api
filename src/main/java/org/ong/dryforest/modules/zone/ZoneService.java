@@ -3,6 +3,7 @@ package org.ong.dryforest.modules.zone;
 import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.site.Site;
 import org.ong.dryforest.modules.site.SiteRepository;
+import org.ong.dryforest.modules.zone.dto.ZoneTranslationDTO;
 import org.ong.dryforest.modules.zone.zoneType.ZoneType;
 import org.ong.dryforest.modules.zone.dto.ZoneDTO;
 import org.ong.dryforest.modules.zone.zoneType.ZoneTypeRepository;
@@ -15,20 +16,42 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ZoneService {
 
     private final ZoneRepository zoneRepository;
     private final ZoneTypeRepository zoneTypeRepository;
     private final SiteRepository siteRepository;
     private final ZoneMapper zoneMapper;
+    private final ZoneTranslationValidator translationValidator;
 
+    @Transactional(readOnly = true)
+    public Page<ZoneDTO> getAll(Pageable pageable) {
 
-    @Transactional
+        return zoneRepository
+                .findAllByIsDeletedFalse(pageable)
+                .map(zoneMapper::toDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public ZoneDTO getByUuid(UUID uuid) {
+
+        return zoneMapper.toDTO(
+                getZoneOrThrow(uuid)
+        );
+    }
+
     public ZoneDTO create(ZoneDTO dto) {
+
+        translationValidator
+                .validateUniqueTranslationsForCreate(
+                        dto.getTranslations()
+                );
 
         Zone zone = zoneMapper.toEntity(dto);
 
@@ -36,7 +59,7 @@ public class ZoneService {
             zone.setUuid(UUID.randomUUID());
         }
 
-        ZoneType type =
+        ZoneType typeZone =
                 ServiceUtils.getOrThrow(
                         () -> zoneTypeRepository.findById(
                                 dto.getTypeZoneId()
@@ -45,7 +68,7 @@ public class ZoneService {
                         "Type de zone introuvable"
                 );
 
-        zone.setTypeZone(type);
+        zone.setTypeZone(typeZone);
 
         Site site =
                 ServiceUtils.getOrThrow(
@@ -58,38 +81,35 @@ public class ZoneService {
 
         zone.setSite(site);
 
-        saveTranslations(zone, dto);
-
-        return zoneMapper.toDTO(
-                zoneRepository.save(zone)
+        saveTranslations(
+                zone,
+                dto.getTranslations()
         );
+
+        Zone savedZone =
+                zoneRepository.save(zone);
+
+        return zoneMapper.toDTO(savedZone);
     }
 
-
-    @Transactional(readOnly = true)
-    public Page<ZoneDTO> findAll(Pageable pageable) {
-
-        return zoneRepository
-                .findAllByIsDeletedFalse(pageable)
-                .map(zoneMapper::toDTO);
-    }
-
-
-    @Transactional(readOnly = true)
-    public ZoneDTO findByUuid(UUID uuid) {
-
-        Zone zone = getZoneOrThrow(uuid);
-
-        return zoneMapper.toDTO(zone);
-    }
-
-
-    @Transactional
     public ZoneDTO update(
             UUID uuid,
-            ZoneDTO dto) {
+            ZoneDTO dto
+    ) {
 
         Zone zone = getZoneOrThrow(uuid);
+
+        Long zoneId = ServiceUtils.requireId(
+                zone.getId(),
+                "Zone ID must not be null"
+        );
+
+        translationValidator
+                .validateUniqueTranslationsForUpdate(
+                        zone,
+                        dto.getTranslations(),
+                        zoneId
+                );
 
         zone.setArea(dto.getArea());
 
@@ -101,7 +121,7 @@ public class ZoneService {
                 )
         );
 
-        ZoneType type =
+        ZoneType typeZone =
                 ServiceUtils.getOrThrow(
                         () -> zoneTypeRepository.findById(
                                 dto.getTypeZoneId()
@@ -110,7 +130,7 @@ public class ZoneService {
                         "Type de zone introuvable"
                 );
 
-        zone.setTypeZone(type);
+        zone.setTypeZone(typeZone);
 
         Site site =
                 ServiceUtils.getOrThrow(
@@ -123,15 +143,16 @@ public class ZoneService {
 
         zone.setSite(site);
 
-        saveTranslations(zone, dto);
-
-        return zoneMapper.toDTO(
-                zoneRepository.save(zone)
+        saveTranslations(
+                zone,
+                dto.getTranslations()
         );
+
+        zoneRepository.flush();
+
+        return zoneMapper.toDTO(zone);
     }
 
-
-    @Transactional
     public void delete(UUID uuid) {
 
         Zone zone = getZoneOrThrow(uuid);
@@ -142,13 +163,13 @@ public class ZoneService {
     }
 
     @Transactional(readOnly = true)
-    public SearchResult<Zone> search(
-            ZoneSearchQuery request) {
+    public SearchResult<ZoneDTO> search(
+            ZoneSearchQuery request
+    ) {
 
-        return SearchSpecification.filterBy(
-                zoneRepository,
-                request
-        );
+        return SearchSpecification
+                .filterBy(zoneRepository, request)
+                .map(zoneMapper::toDTO);
     }
 
     private Zone getZoneOrThrow(UUID uuid) {
@@ -161,25 +182,31 @@ public class ZoneService {
         );
     }
 
-
     private void saveTranslations(
             Zone zone,
-            ZoneDTO dto) {
+            List<ZoneTranslationDTO> translationDTOs
+    ) {
 
-        zone.getTranslations().clear();
+        for (ZoneTranslationDTO dto : translationDTOs) {
 
-        dto.getTranslations()
-                .forEach(translationDTO -> {
+            // Rechercher une traduction existante pour cette langue
+            ZoneTranslation existing = zone.getTranslations()
+                    .stream()
+                    .filter(translation ->
+                            translation.getLocale() == dto.getLocale()
+                    )
+                    .findFirst()
+                    .orElse(null);
 
-                    ZoneTranslation translation =
-                            zoneMapper.toEntity(
-                                    translationDTO
-                            );
+            if (existing != null) {
+                existing.setName(dto.getName().trim());
 
-                    translation.setZone(zone);
+            } else {
+                ZoneTranslation translation =
+                        zoneMapper.toTranslation(zone, dto);
 
-                    zone.getTranslations()
-                            .add(translation);
-                });
+                zone.getTranslations().add(translation);
+            }
+        }
     }
 }

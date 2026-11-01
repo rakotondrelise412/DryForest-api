@@ -1,18 +1,15 @@
 package org.ong.dryforest.modules.zone;
 
+import jakarta.annotation.Nullable;
 import org.locationtech.jts.geom.*;
 import org.ong.dryforest.modules.zone.dto.*;
 import org.ong.dryforest.modules.zone.dto.ZoneTranslationDTO;
-import org.ong.dryforest.modules.zone.zoneNeed.ZoneNeed;
-import org.ong.dryforest.modules.zone.zoneNeed.ZoneNeedDTO;
-import org.ong.dryforest.modules.zone.zoneType.ZoneTypeTranslation;
-import org.ong.dryforest.modules.zone.zoneType.dto.ZoneTypeTranslationDTO;
-import org.ong.dryforest.modules.zone.zoneType.ZoneType;
-import org.ong.dryforest.modules.zone.zoneType.dto.ZoneTypeDTO;
+import org.ong.dryforest.shared.utils.ServiceUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class ZoneMapper {
@@ -20,180 +17,123 @@ public class ZoneMapper {
     private final GeometryFactory geometryFactory =
             new GeometryFactory();
 
-
     public ZoneDTO toDTO(Zone entity) {
+
+        Objects.requireNonNull(entity, "Zone must not be null");
+
+        var id = ServiceUtils.requireId(
+                entity.getId(),
+                "Zone ID must not be null"
+        );
 
         ZoneDTO dto = new ZoneDTO();
 
-        dto.setId(entity.getId());
-        dto.setUuid(entity.getUuid());
+        dto.setId(id);
+
+        dto.setUuid(
+                Objects.requireNonNull(
+                        entity.getUuid(),
+                        "Zone UUID must not be null"
+                )
+        );
+
         dto.setArea(entity.getArea());
         dto.setIsSynced(entity.getIsSynced());
 
-        if (entity.getTypeZone() != null) {
-            dto.setTypeZoneId(
-                    entity.getTypeZone().getId()
-            );
-        }
+        var typeZone = Objects.requireNonNull(
+                entity.getTypeZone(),
+                "Zone type must not be null"
+        );
 
-        // Site
-        if (entity.getSite() != null) {
-            dto.setSiteId(
-                    entity.getSite().getId()
-            );
-        }
+        dto.setTypeZoneId(
+                ServiceUtils.requireId(
+                        typeZone.getId(),
+                        "TypeZone ID must not be null"
+                )
+        );
+
+        var site = Objects.requireNonNull(
+                entity.getSite(),
+                "Zone site must not be null"
+        );
+
+        dto.setSiteId(
+                ServiceUtils.requireId(
+                        site.getId(),
+                        "Site ID must not be null"
+                )
+        );
 
         if (entity.getGeom() != null) {
-            dto.setGeom(
-                    polygonToDTO(entity.getGeom())
-            );
+            dto.setGeom(polygonToDTO(entity.getGeom()));
         }
 
-        if (entity.getTranslations() != null) {
-            dto.setTranslations(
-                    entity.getTranslations()
-                            .stream()
-                            .map(this::toDTO)
-                            .toList()
-            );
-        }
+        dto.setTranslations(
+                entity.getTranslations()
+                        .stream()
+                        .map(this::translationToDTO)
+                        .toList()
+        );
+
+        dto.setCreatedAt(entity.getCreatedAt());
+        dto.setUpdatedAt(entity.getUpdatedAt());
 
         return dto;
     }
 
     public Zone toEntity(ZoneDTO dto) {
 
-        Zone entity = new Zone();
+        Zone zone = new Zone();
 
-        entity.setUuid(dto.getUuid());
-        entity.setArea(dto.getArea());
-        entity.setIsSynced(dto.getIsSynced());
+        zone.setUuid(dto.getUuid());
+        zone.setArea(dto.getArea());
+        zone.setIsSynced(dto.getIsSynced());
 
-        if (dto.getGeom() != null) {
-            entity.setGeom(
-                    polygonToEntity(dto.getGeom())
-            );
-        }
+        zone.setGeom(
+                polygonToEntity(dto.getGeom())
+        );
 
-        return entity;
+        return zone;
     }
 
 
-    public ZoneTranslationDTO toDTO(
-            ZoneTranslation entity) {
+    public ZoneTranslationDTO translationToDTO(
+            ZoneTranslation translation
+    ) {
 
-        ZoneTranslationDTO dto =
-                new ZoneTranslationDTO();
+        var id = ServiceUtils.requireId(
+                translation.getId(),
+                "ZoneTranslation ID must not be null"
+        );
 
-        dto.setId(entity.getId());
-        dto.setLocale(entity.getLocale());
-        dto.setName(entity.getName());
+        ZoneTranslationDTO dto = new ZoneTranslationDTO(
+                id,
+                translation.getLocale(),
+                translation.getName()
+        );
+
+        dto.setCreatedAt(translation.getCreatedAt());
+        dto.setUpdatedAt(translation.getUpdatedAt());
 
         return dto;
     }
 
-    public ZoneTranslation toEntity(
-            ZoneTranslationDTO dto) {
+    public ZoneTranslation toTranslation(
+            Zone zone,
+            ZoneTranslationDTO dto
+    ) {
 
-        ZoneTranslation entity =
+        ZoneTranslation translation =
                 new ZoneTranslation();
 
-        entity.setLocale(dto.getLocale());
-        entity.setName(dto.getName());
+        translation.setZone(zone);
+        translation.setLocale(dto.getLocale());
+        translation.setName(dto.getName().trim());
 
-        return entity;
+        return translation;
     }
 
-
-    public ZoneTypeDTO toDTO(ZoneType entity) {
-
-        ZoneTypeDTO dto =
-                new ZoneTypeDTO();
-
-        dto.setId(entity.getId());
-        dto.setName(entity.getName());
-
-        if (entity.getTranslations() != null) {
-
-            dto.setTranslations(
-                    entity.getTranslations()
-                            .stream()
-                            .map(this::toDTO)
-                            .toList()
-            );
-        }
-
-        return dto;
-    }
-
-    public ZoneType toEntity(ZoneTypeDTO dto) {
-
-        ZoneType entity = new ZoneType();
-
-        entity.setName(dto.getName());
-
-        return entity;
-    }
-
-
-    public ZoneTypeTranslationDTO toDTO(
-            ZoneTypeTranslation entity) {
-
-        ZoneTypeTranslationDTO dto =
-                new ZoneTypeTranslationDTO();
-
-        dto.setId(entity.getId());
-        dto.setLocale(entity.getLocale());
-        dto.setName(entity.getName());
-
-        return dto;
-    }
-
-    public ZoneTypeTranslation toEntity(
-            ZoneTypeTranslationDTO dto) {
-
-        ZoneTypeTranslation entity =
-                new ZoneTypeTranslation();
-
-        entity.setLocale(dto.getLocale());
-        entity.setName(dto.getName());
-
-        return entity;
-    }
-
-
-    public ZoneNeedDTO toDTO(ZoneNeed entity) {
-
-        ZoneNeedDTO dto =
-                new ZoneNeedDTO();
-
-        dto.setId(entity.getId());
-        dto.setUuid(entity.getUuid());
-        dto.setIsSynced(entity.getIsSynced());
-
-        if (entity.getZone() != null) {
-            dto.setZoneId(
-                    entity.getZone().getId()
-            );
-        }
-
-        return dto;
-    }
-
-    public ZoneNeed toEntity(ZoneNeedDTO dto) {
-
-        ZoneNeed entity =
-                new ZoneNeed();
-
-        entity.setUuid(dto.getUuid());
-        entity.setIsSynced(dto.getIsSynced());
-
-        return entity;
-    }
-
-
-    public PolygonDTO polygonToDTO(
-            Polygon polygon) {
+    public PolygonDTO polygonToDTO(Polygon polygon) {
 
         List<List<Double>> points =
                 new ArrayList<>();
@@ -220,12 +160,12 @@ public class ZoneMapper {
         );
     }
 
-
+    @Nullable
     public Polygon polygonToEntity(
-            PolygonDTO dto) {
+            @Nullable PolygonDTO dto
+    ) {
 
         if (dto == null ||
-                dto.getCoordinates() == null ||
                 dto.getCoordinates().isEmpty()) {
 
             return null;
@@ -241,14 +181,12 @@ public class ZoneMapper {
              i < points.size();
              i++) {
 
-            List<Double> point =
-                    points.get(i);
+            List<Double> point = points.get(i);
 
-            coordinates[i] =
-                    new Coordinate(
-                            point.get(0),
-                            point.get(1)
-                    );
+            coordinates[i] = new Coordinate(
+                    point.get(0),
+                    point.get(1)
+            );
         }
 
         LinearRing ring =

@@ -28,12 +28,21 @@ public class JwtService {
         return extractAllClaims(token).getSubject();
     }
 
-    public Date extractExpiration(String token) {
-        return extractAllClaims(token).getExpiration();
-    }
 
     public boolean isValid(String token) {
-        return extractExpiration(token).after(new Date());
+        if (token == null || token.isBlank()) {
+            return false;
+        }
+
+        try {
+            Claims claims = extractAllClaims(token);
+
+            return claims.getExpiration() != null
+                    && claims.getExpiration().after(new Date());
+
+        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException exception) {
+            return false;
+        }
     }
 
     private Claims extractAllClaims(String token) {

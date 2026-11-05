@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.ong.dryforest.modules.identity.service.UserService;
-import org.ong.dryforest.shared.constants.RoutesConstants;
 import org.ong.dryforest.shared.constants.SecurityConstants;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,15 +40,23 @@ public class JwtFilter extends OncePerRequestFilter {
 
         var header = request.getHeader(SecurityConstants.AUTH_HEADER);
 
-        if (header == null || !header.startsWith(SecurityConstants.BEARER_PREFIX)) {
+        if (header == null ||
+                !header.startsWith(SecurityConstants.BEARER_PREFIX)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        var token = header.substring(SecurityConstants.BEARER_PREFIX.length());
+        var token = header.substring(
+                SecurityConstants.BEARER_PREFIX.length()
+        ).trim();
 
         if (!jwtService.isValid(token)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            SecurityContextHolder.clearContext();
+
+            response.sendError(
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Token JWT invalide ou expiré."
+            );
             return;
         }
 

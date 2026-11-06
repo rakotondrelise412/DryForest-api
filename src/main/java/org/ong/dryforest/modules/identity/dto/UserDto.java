@@ -11,6 +11,7 @@ import lombok.Setter;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.ong.dryforest.enums.Gender;
+import org.ong.dryforest.enums.Role;
 import org.ong.dryforest.shared.base.AbstractTimestamps;
 
 @Getter
@@ -23,7 +24,6 @@ public class UserDto extends AbstractTimestamps {
         @Nullable
         private Long id;
 
-        @NotNull
         @NotBlank
         private String username;
 
@@ -34,25 +34,28 @@ public class UserDto extends AbstractTimestamps {
         @PositiveOrZero
         private Long salary;
 
-        @NotNull
         @NotBlank
         private String firstName;
 
-        @NotNull
         @NotBlank
         private String lastName;
 
         @NotNull
         private Gender gender;
 
-        @NotNull
         @NotBlank
         private String phoneNumber;
 
-        @NotNull
+        @NotBlank
         @Email
         private String email;
 
         @Nullable
         private String address;
+
+        @NotNull
+        private Role role;
+
+        @Nullable
+        private Long siteId;
 }

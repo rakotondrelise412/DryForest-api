@@ -17,6 +17,7 @@ import org.ong.dryforest.shared.base.AbstractEntity;
 @Getter
 @Setter
 public class Person extends AbstractEntity {
+
     @Column(length = 200, nullable = false)
     private String lastName;
 
@@ -27,15 +28,18 @@ public class Person extends AbstractEntity {
     private String email;
 
     @Column(length = 150, nullable = false)
-    private @Nullable String phoneNumber;
+    private String phoneNumber;
 
+    @Nullable
     @Column(columnDefinition = "TEXT")
-    private @Nullable String address;
+    private String address;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
 
-    @ManyToOne
+    @Nullable
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "site_id")
     private Site site;
 }

@@ -1,6 +1,7 @@
 package org.ong.dryforest.modules.identity.service;
 
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.ong.dryforest.enums.Role;
 import org.ong.dryforest.modules.identity.User;
 import org.ong.dryforest.modules.identity.UserMapper;
@@ -8,6 +9,8 @@ import org.ong.dryforest.modules.identity.UserRepository;
 import org.ong.dryforest.modules.identity.dto.UserDto;
 import org.ong.dryforest.modules.person.Person;
 import org.ong.dryforest.modules.person.PersonRepository;
+import org.ong.dryforest.modules.site.Site;
+import org.ong.dryforest.modules.site.SiteRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,48 +25,39 @@ import java.util.List;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
-
     private final UserMapper userMapper;
-
     private final PersonRepository personRepository;
-
+    private final SiteRepository siteRepository;
     private final PasswordEncoder passwordEncoder;
-
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) {
 
-        return userRepository
-                .findByUsername(username)
+        return userRepository.findByUsernameAndIsDeletedFalse(username)
                 .orElseThrow(() ->
                         new UsernameNotFoundException(
-                                username + " not found"
+                                "Utilisateur introuvable : " + username
                         )
                 );
     }
-
 
     @Transactional
     public UserDto create(UserDto dto) {
 
         if (userRepository.existsByUsername(dto.getUsername())) {
-
             throw new IllegalArgumentException(
-                    "Username '" +
-                            dto.getUsername() +
-                            "' already exists"
+                    "Le nom d'utilisateur '" + dto.getUsername() + "' existe déjà."
             );
         }
 
-        if (dto.getPassword() == null ||
-                dto.getPassword().isBlank()) {
+        String password = dto.getPassword();
 
+        if (password == null || password.isBlank()) {
             throw new IllegalArgumentException(
-                    "Password is required"
+                    "Le mot de passe est obligatoire."
             );
         }
-
 
         Person person = new Person();
 
@@ -74,161 +68,123 @@ public class UserService implements UserDetailsService {
         person.setEmail(dto.getEmail());
         person.setAddress(dto.getAddress());
 
+        assignSite(person, dto.getRole(), dto.getSiteId());
+
         person = personRepository.save(person);
 
         User user = new User();
 
         user.setUsername(dto.getUsername());
-
-        user.setPassword(
-                passwordEncoder.encode(
-                        dto.getPassword()
-                )
-        );
-
+        user.setPassword(passwordEncoder.encode(password));
         user.setSalary(dto.getSalary());
-
         user.setPerson(person);
-
-        user.setRole(Role.ADMIN);
+        user.setRole(dto.getRole());
 
         user = userRepository.save(user);
-
 
         return userMapper.toDto(user);
     }
 
-
     @Transactional(readOnly = true)
     public List<UserDto> findAll() {
 
-        return userRepository
-                .findAll()
+        return userRepository.findAllByIsDeletedFalse()
                 .stream()
                 .map(userMapper::toDto)
                 .toList();
     }
 
-
     @Transactional(readOnly = true)
     public UserDto findById(Long id) {
 
-        User user =
-                userRepository
-                        .findUserById(id)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "User with id " +
-                                                id +
-                                                " not found"
-                                )
-                        );
+        User user = getActiveUser(id);
 
         return userMapper.toDto(user);
     }
 
-
     @Transactional
-    public UserDto update(
-            Long id,
-            UserDto dto) {
+    public UserDto update(Long id, UserDto dto) {
 
-        User user =
-                userRepository
-                        .findUserById(id)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "User with id " +
-                                                id +
-                                                " not found"
-                                )
-                        );
+        User user = getActiveUser(id);
 
+        if (!user.getUsername().equals(dto.getUsername())
+                && userRepository.existsByUsername(dto.getUsername())) {
 
-        if (!user.getUsername()
-                .equals(dto.getUsername())) {
-
-            if (userRepository.existsByUsername(
-                    dto.getUsername())) {
-
-                throw new IllegalArgumentException(
-                        "Username '" +
-                                dto.getUsername() +
-                                "' already exists"
-                );
-            }
-
-            user.setUsername(
-                    dto.getUsername()
+            throw new IllegalArgumentException(
+                    "Le nom d'utilisateur '" + dto.getUsername() + "' existe déjà."
             );
         }
 
+        user.setUsername(dto.getUsername());
+        user.setSalary(dto.getSalary());
+        user.setRole(dto.getRole());
 
-        if (dto.getPassword() != null &&
-                !dto.getPassword().isBlank()) {
-
-            user.setPassword(
-                    passwordEncoder.encode(
-                            dto.getPassword()
-                    )
-            );
+        // Le mot de passe est facultatif lors d'une modification.
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
-
-
-        user.setSalary(
-                dto.getSalary()
-        );
-        
 
         Person person = user.getPerson();
 
-        person.setFirstName(
-                dto.getFirstName()
-        );
+        person.setFirstName(dto.getFirstName());
+        person.setLastName(dto.getLastName());
+        person.setGender(dto.getGender());
+        person.setPhoneNumber(dto.getPhoneNumber());
+        person.setEmail(dto.getEmail());
+        person.setAddress(dto.getAddress());
 
-        person.setLastName(
-                dto.getLastName()
-        );
-
-        person.setGender(
-                dto.getGender()
-        );
-
-        person.setPhoneNumber(
-                dto.getPhoneNumber()
-        );
-
-        person.setEmail(
-                dto.getEmail()
-        );
-
-        person.setAddress(
-                dto.getAddress()
-        );
-
+        assignSite(person, dto.getRole(), dto.getSiteId());
 
         personRepository.save(person);
-        userRepository.save(user);
 
-
-        return userMapper.toDto(user);
+        return userMapper.toDto(userRepository.save(user));
     }
-
 
     @Transactional
     public void delete(Long id) {
 
-        User user =
-                userRepository
-                        .findUserById(id)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "User with id " +
-                                                id +
-                                                " not found"
-                                )
-                        );
+        User user = getActiveUser(id);
 
-        userRepository.delete(user);
+        user.setDeleted(true);
+
+        userRepository.save(user);
+    }
+
+    private User getActiveUser(Long id) {
+
+        return userRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Utilisateur introuvable avec l'identifiant : " + id
+                        )
+                );
+    }
+
+    private void assignSite(
+            Person person,
+            Role role,
+            @Nullable Long siteId
+    ) {
+
+        if (siteId == null) {
+
+            if (role != Role.ADMIN) {
+                throw new IllegalArgumentException(
+                        "Un site est obligatoire pour le rôle " + role + "."
+                );
+            }
+
+            person.setSite(null);
+            return;
+        }
+
+        Site site = siteRepository.findByIdAndIsDeletedFalse(siteId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Site introuvable ou supprimé : " + siteId
+                        )
+                );
+
+        person.setSite(site);
     }
 }

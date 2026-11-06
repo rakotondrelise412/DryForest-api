@@ -22,28 +22,22 @@ public class AuthService {
     private final JwtService jwtService;
     private final CurrentUser currentUser;
     private final AuthenticationManager authenticationManager;
-
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
     public AuthResponse login(AuthRequest authRequest) {
 
-        var authenticationRequest =
-                UsernamePasswordAuthenticationToken.unauthenticated(
-                        authRequest.username(),
-                        authRequest.password()
-                );
+        var authentication = UsernamePasswordAuthenticationToken.unauthenticated(
+                authRequest.username(),
+                authRequest.password()
+        );
 
-        var authenticationResponse =
-                authenticationManager.authenticate(authenticationRequest);
+        var result = authenticationManager.authenticate(authentication);
 
-        var ctx = SecurityContextHolder.getContext();
-        ctx.setAuthentication(authenticationResponse);
-
-        var user = currentUser.username();
+        SecurityContextHolder.getContext().setAuthentication(result);
 
         return new AuthResponse(
-                jwtService.generateToken(user)
+                jwtService.generateToken(currentUser.username())
         );
     }
 
@@ -52,9 +46,9 @@ public class AuthService {
 
         String username = currentUser.username();
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameAndIsDeletedFalse(username)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new IllegalArgumentException(
                                 "Utilisateur introuvable : " + username
                         )
                 );

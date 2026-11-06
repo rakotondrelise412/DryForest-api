@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.identity.dto.UserDto;
 import org.ong.dryforest.modules.identity.service.UserService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,49 +13,38 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ADMIN')")
 public class UserController {
 
     private final UserService userService;
 
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(
-            @Valid @RequestBody UserDto dto) {
-
+    public UserDto create(@Valid @RequestBody UserDto dto) {
         return userService.create(dto);
     }
 
-
     @GetMapping
     public List<UserDto> findAll() {
-
         return userService.findAll();
     }
 
-
     @GetMapping("/{id}")
-    public UserDto findById(
-            @PathVariable Long id) {
-
+    public UserDto findById(@PathVariable Long id) {
         return userService.findById(id);
     }
-
 
     @PutMapping("/{id}")
     public UserDto update(
             @PathVariable Long id,
-            @Valid @RequestBody UserDto dto) {
-
+            @Valid @RequestBody UserDto dto
+    ) {
         return userService.update(id, dto);
     }
 
-
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(
-            @PathVariable Long id) {
-
+    public void delete(@PathVariable Long id) {
         userService.delete(id);
     }
 }

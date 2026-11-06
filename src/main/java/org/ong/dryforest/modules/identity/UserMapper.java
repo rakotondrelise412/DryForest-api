@@ -3,6 +3,7 @@ package org.ong.dryforest.modules.identity;
 import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.identity.dto.UserDto;
 import org.ong.dryforest.modules.person.Person;
+import org.ong.dryforest.modules.site.Site;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,25 +19,21 @@ public class UserMapper {
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
 
+        // Ne jamais retourner le mot de passe.
         dto.setPassword(null);
 
         dto.setSalary(user.getSalary());
+        dto.setRole(user.getRole());
 
         dto.setFirstName(person.getFirstName());
         dto.setLastName(person.getLastName());
         dto.setGender(person.getGender());
-        String phoneNumber = person.getPhoneNumber();
-
-        if (phoneNumber == null || phoneNumber.isBlank()) {
-            throw new IllegalStateException(
-                    "Le numéro de téléphone de la personne est absent."
-            );
-        }
-
-        dto.setPhoneNumber(phoneNumber);
-
+        dto.setPhoneNumber(person.getPhoneNumber());
         dto.setEmail(person.getEmail());
         dto.setAddress(person.getAddress());
+
+        Site site = person.getSite();
+        dto.setSiteId(site != null ? site.getId() : null);
 
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());

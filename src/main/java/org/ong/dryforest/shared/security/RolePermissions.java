@@ -26,6 +26,7 @@ public final class RolePermissions {
 
                     // Consultation des données
                     Permission.SITE_READ,
+                    Permission.PERSON_READ,
                     Permission.ZONE_READ,
                     Permission.PLANTATION_READ,
                     Permission.INCIDENT_READ,
@@ -101,7 +102,6 @@ public final class RolePermissions {
             Role role,
             Permission permission
     ) {
-
         return getPermissions(role).contains(permission);
     }
 }

@@ -9,6 +9,12 @@ public enum Permission {
     USER_UPDATE,
     USER_DELETE,
 
+    // Gestion des personnes
+    PERSON_READ,
+    PERSON_CREATE,
+    PERSON_UPDATE,
+    PERSON_DELETE,
+
     // Gestion des sites
     SITE_READ,
     SITE_CREATE,

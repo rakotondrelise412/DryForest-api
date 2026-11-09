@@ -1,9 +1,12 @@
+
 package org.ong.dryforest.shared.exceptions;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,10 +15,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 
 @RestControllerAdvice
+@SuppressWarnings("unused")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
-    public ProblemDetail handleApi(ApiException ex, HttpServletRequest req) {
+    public ProblemDetail handleApi(
+            ApiException ex,
+            HttpServletRequest req
+    ) {
         return ProblemDetails.build(
                 ex.getStatus(),
                 ex.getCode(),
@@ -26,7 +33,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidation(MethodArgumentNotValidException ex, HttpServletRequest req) {
+    public ProblemDetail handleValidation(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest req
+    ) {
         var errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -43,7 +53,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ProblemDetail handleConstraint(ConstraintViolationException ex, HttpServletRequest req) {
+    public ProblemDetail handleConstraint(
+            ConstraintViolationException ex,
+            HttpServletRequest req
+    ) {
         var errors = ex.getConstraintViolations()
                 .stream()
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
@@ -59,7 +72,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ProblemDetail handleUserNotFound(UsernameNotFoundException ex, HttpServletRequest req) {
+    public ProblemDetail handleUserNotFound(
+            UsernameNotFoundException ex,
+            HttpServletRequest req
+    ) {
         return ProblemDetails.build(
                 HttpStatus.NOT_FOUND,
                 ErrorCode.USER_NOT_FOUND,
@@ -69,8 +85,33 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handleAccessDenied(HttpServletRequest req) {
+        return ProblemDetails.build(
+                HttpStatus.FORBIDDEN,
+                ErrorCode.FORBIDDEN,
+                "Access denied: insufficient permissions",
+                req,
+                null
+        );
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthentication(HttpServletRequest req) {
+        return ProblemDetails.build(
+                HttpStatus.UNAUTHORIZED,
+                ErrorCode.UNAUTHORIZED,
+                "Authentication required",
+                req,
+                null
+        );
+    }
+
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleGeneric(Exception ex, HttpServletRequest req) {
+    public ProblemDetail handleGeneric(
+            Exception ex,
+            HttpServletRequest req
+    ) {
         return ProblemDetails.build(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 ErrorCode.INTERNAL_ERROR,

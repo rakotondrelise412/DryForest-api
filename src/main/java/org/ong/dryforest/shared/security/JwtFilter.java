@@ -1,3 +1,4 @@
+
 package org.ong.dryforest.shared.security;
 
 import jakarta.servlet.FilterChain;
@@ -8,9 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.ong.dryforest.modules.identity.service.UserService;
 import org.ong.dryforest.shared.constants.SecurityConstants;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -21,8 +24,10 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
+
     private final JwtService jwtService;
     private final UserService userService;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Override
     protected void doFilterInternal(
@@ -53,16 +58,44 @@ public class JwtFilter extends OncePerRequestFilter {
         if (!jwtService.isValid(token)) {
             SecurityContextHolder.clearContext();
 
-            response.sendError(
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    "Token JWT invalide ou expiré."
+            authenticationEntryPoint.commence(
+                    request,
+                    response,
+                    new BadCredentialsException("Token JWT invalide ou expiré.")
             );
             return;
         }
 
         var username = jwtService.extractUsername(token);
+
+        if (username.isBlank()) {
+            SecurityContextHolder.clearContext();
+
+            authenticationEntryPoint.commence(
+                    request,
+                    response,
+                    new BadCredentialsException("Token JWT invalide.")
+            );
+            return;
+        }
+
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails user = userService.loadUserByUsername(username);
+
+            UserDetails user;
+
+            try {
+                user = userService.loadUserByUsername(username);
+            } catch (UsernameNotFoundException exception) {
+
+                SecurityContextHolder.clearContext();
+
+                authenticationEntryPoint.commence(
+                        request,
+                        response,
+                        exception
+                );
+                return;
+            }
 
             var auth = new UsernamePasswordAuthenticationToken(
                     user,
@@ -70,7 +103,10 @@ public class JwtFilter extends OncePerRequestFilter {
                     user.getAuthorities()
             );
 
-            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            auth.setDetails(
+                    new WebAuthenticationDetailsSource().buildDetails(request)
+            );
+
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 

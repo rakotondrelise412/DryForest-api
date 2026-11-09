@@ -1,8 +1,11 @@
+
 package org.ong.dryforest.shared.config;
 
 import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.identity.service.UserService;
 import org.ong.dryforest.shared.constants.RoutesConstants;
+import org.ong.dryforest.shared.security.CustomAccessDeniedHandler;
+import org.ong.dryforest.shared.security.CustomAuthenticationEntryPoint;
 import org.ong.dryforest.shared.security.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +32,9 @@ public class SecurityConfig {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
 
@@ -39,6 +45,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(RoutesConstants.PUBLIC).permitAll()
                         .anyRequest().authenticated()
+                )
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
 
                 .sessionManagement(session -> session

@@ -1,10 +1,20 @@
 package org.ong.dryforest.modules.person;
 
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.ong.dryforest.modules.site.Site;
 import org.ong.dryforest.modules.site.SiteRepository;
+import org.ong.dryforest.shared.search.SearchResult;
+import org.ong.dryforest.shared.search.SearchSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -15,44 +25,39 @@ public class PersonService {
 
     private final PersonRepository personRepository;
     private final SiteRepository siteRepository;
+    private final PersonMapper personMapper;
 
-    // =========================
-    // GET ALL
-    // =========================
+
     @Transactional(readOnly = true)
-    public List<PersonDTO> findAll() {
+    public SearchResult<PersonDTO> findAll(int page, int size) {
 
-        return personRepository.findAllByIsDeletedFalse()
-                .stream()
-                .map(PersonMapper::toDTO)
-                .toList();
+        validatePagination(page, size, false);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Page<Person> result =
+                personRepository.findAllByIsDeletedFalse(pageable);
+
+        return toSearchResult(result, page, size);
     }
 
-    // =========================
-    // GET BY ID
-    // =========================
+
     @Transactional(readOnly = true)
     public PersonDTO findById(Long id) {
 
-        Person person = personRepository
-                .findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Personne introuvable avec l'id : " + id
-                        )
-                );
-
-        return PersonMapper.toDTO(person);
+        return personMapper.toDTO(getPerson(id));
     }
 
-    // =========================
-    // CREATE
-    // =========================
+
     public PersonDTO create(PersonDTO dto) {
 
-        if (personRepository.existsByEmailAndIsDeletedFalse(dto.getEmail())) {
-
-            throw new IllegalArgumentException(
+        if (personRepository.existsByEmail(dto.getEmail())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
                     "Une personne avec cet email existe déjà : "
                             + dto.getEmail()
             );
@@ -60,30 +65,23 @@ public class PersonService {
 
         Site site = getSite(dto.getSiteId());
 
-        Person person = PersonMapper.toEntity(dto, site);
+        Person person = personMapper.toEntity(dto, site);
 
         Person savedPerson = personRepository.save(person);
 
-        return PersonMapper.toDTO(savedPerson);
+        return personMapper.toDTO(savedPerson);
     }
 
-    // =========================
-    // UPDATE
-    // =========================
+
     public PersonDTO update(Long id, PersonDTO dto) {
 
-        Person person = personRepository
-                .findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Personne introuvable avec l'id : " + id
-                        )
-                );
+        Person person = getPerson(id);
 
-        if (!person.getEmail().equals(dto.getEmail())
-                && personRepository.existsByEmailAndIsDeletedFalse(dto.getEmail())) {
+        if (!person.getEmail().equalsIgnoreCase(dto.getEmail())
+                && personRepository.existsByEmail(dto.getEmail())) {
 
-            throw new IllegalArgumentException(
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
                     "Une autre personne utilise déjà cet email : "
                             + dto.getEmail()
             );
@@ -91,54 +89,121 @@ public class PersonService {
 
         Site site = getSite(dto.getSiteId());
 
-        PersonMapper.updateEntity(
-                person,
-                dto,
-                site
-        );
+        personMapper.updateEntity(person, dto, site);
 
         Person updatedPerson = personRepository.save(person);
 
-        return PersonMapper.toDTO(updatedPerson);
+        return personMapper.toDTO(updatedPerson);
     }
 
-    // =========================
-    // DELETE
-    // =========================
+
     public void delete(Long id) {
 
-        Person person = personRepository
-                .findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Personne introuvable avec l'id : " + id
-                        )
-                );
-
-        /*
-         * À adapter selon le nom réel du champ
-         * dans AbstractEntity.
-         */
+        Person person = getPerson(id);
         person.setDeleted(true);
 
         personRepository.save(person);
     }
 
-    // =========================
-    // GET SITE
-    // =========================
-    private Site getSite(Long siteId) {
+
+    @Transactional(readOnly = true)
+    public SearchResult<PersonDTO> search(PersonSearchQuery request) {
+
+        int page = request.resolvePageNumber();
+        int size = request.resolvePageSize();
+
+        validatePagination(page, size, true);
+
+        String sortBy = request.resolveSortBy();
+
+        Sort.Direction direction = request.resolveAscending()
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(
+                page - 1,
+                size,
+                Sort.by(direction, sortBy)
+        );
+
+        Specification<Person> specification =
+                SearchSpecification.from(request);
+
+        specification = specification.and(
+                (root, query, cb) ->
+                        cb.isFalse(root.get("isDeleted"))
+        );
+
+        Page<Person> result = personRepository.findAll(
+                specification,
+                pageable
+        );
+
+        return toSearchResult(result, page, size);
+    }
+
+
+    private Person getPerson(Long id) {
+
+        return personRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Personne introuvable avec l'id : " + id
+                ));
+    }
+
+
+    @Nullable
+    private Site getSite(@Nullable Long siteId) {
 
         if (siteId == null) {
             return null;
         }
 
-        return siteRepository
-                .findById(siteId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Site introuvable avec l'id : " + siteId
-                        )
-                );
+        return siteRepository.findByIdAndIsDeletedFalse(siteId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Site introuvable avec l'id : " + siteId
+                ));
+    }
+
+
+    private void validatePagination(
+            int page,
+            int size,
+            boolean oneBased
+    ) {
+
+        int minimumPage = oneBased ? 1 : 0;
+
+        if (page < minimumPage || size < 1 || size > 100) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Paramètres de pagination invalides."
+            );
+        }
+    }
+
+
+    private SearchResult<PersonDTO> toSearchResult(
+            Page<Person> result,
+            int page,
+            int size
+    ) {
+
+        List<PersonDTO> content = result.getContent()
+                .stream()
+                .map(personMapper::toDTO)
+                .toList();
+
+        return new SearchResult<>(
+                content,
+                result.getTotalElements(),
+                result.getTotalPages(),
+                page,
+                size,
+                result.hasNext(),
+                result.hasPrevious()
+        );
     }
 }

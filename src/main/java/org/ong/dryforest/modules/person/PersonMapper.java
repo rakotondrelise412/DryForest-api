@@ -1,19 +1,19 @@
 package org.ong.dryforest.modules.person;
 
+import org.jspecify.annotations.Nullable;
 import org.ong.dryforest.modules.site.Site;
+import org.springframework.stereotype.Component;
 
+@Component
 public class PersonMapper {
 
-    private PersonMapper() {
-    }
-
-    public static PersonDTO toDTO(Person person) {
+    public PersonDTO toDTO(Person person) {
 
         Long siteId = person.getSite() != null
                 ? person.getSite().getId()
                 : null;
 
-        return new PersonDTO(
+        PersonDTO dto = new PersonDTO(
                 person.getId(),
                 person.getLastName(),
                 person.getFirstName(),
@@ -23,9 +23,17 @@ public class PersonMapper {
                 person.getGender(),
                 siteId
         );
+
+        dto.setCreatedAt(person.getCreatedAt());
+        dto.setUpdatedAt(person.getUpdatedAt());
+
+        return dto;
     }
 
-    public static Person toEntity(PersonDTO dto, Site site) {
+    public Person toEntity(
+            PersonDTO dto,
+            @Nullable Site site
+    ) {
 
         Person person = new Person();
 
@@ -40,10 +48,10 @@ public class PersonMapper {
         return person;
     }
 
-    public static void updateEntity(
+    public void updateEntity(
             Person person,
             PersonDTO dto,
-            Site site
+            @Nullable Site site
     ) {
 
         person.setLastName(dto.getLastName());

@@ -9,6 +9,7 @@ import org.jspecify.annotations.Nullable;
 import org.ong.dryforest.enums.Gender;
 import org.ong.dryforest.modules.site.Site;
 import org.ong.dryforest.shared.base.AbstractEntity;
+import org.ong.dryforest.shared.sort.SortableField;
 
 @Entity
 @Table(name = "persons")
@@ -18,12 +19,15 @@ import org.ong.dryforest.shared.base.AbstractEntity;
 @Setter
 public class Person extends AbstractEntity {
 
+    @SortableField(field = "createdAt", initialize = true)
     @Column(length = 200, nullable = false)
     private String lastName;
 
+    @SortableField
     @Column(length = 200, nullable = false)
     private String firstName;
 
+    @SortableField
     @Column(unique = true, nullable = false)
     private String email;
 

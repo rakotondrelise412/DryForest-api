@@ -24,8 +24,8 @@ import java.util.Collections;
 @NoArgsConstructor
 public class User extends AbstractEntity implements UserDetails {
 
+    @SortableField(field = "createdAt", initialize = true)
     @Column(unique = true, nullable = false)
-    @SortableField
     private String username;
 
     @Column(nullable = false)

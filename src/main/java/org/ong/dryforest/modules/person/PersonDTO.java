@@ -1,3 +1,4 @@
+
 package org.ong.dryforest.modules.person;
 
 import jakarta.validation.constraints.Email;
@@ -7,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.ong.dryforest.enums.Gender;
 import org.ong.dryforest.shared.base.AbstractTimestamps;
@@ -15,12 +17,13 @@ import org.ong.dryforest.shared.base.AbstractTimestamps;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@NullMarked
 public class PersonDTO extends AbstractTimestamps {
 
     @Nullable
     private Long id;
 
-    @NotBlank
+    @Nullable
     private String lastName;
 
     @NotBlank
@@ -30,7 +33,7 @@ public class PersonDTO extends AbstractTimestamps {
     @Email
     private String email;
 
-    @NotBlank
+    @Nullable
     private String phoneNumber;
 
     @Nullable

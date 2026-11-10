@@ -1,3 +1,4 @@
+
 package org.ong.dryforest.modules.identity.dto;
 
 import jakarta.validation.constraints.Email;
@@ -37,7 +38,7 @@ public class UserDto extends AbstractTimestamps {
         @NotBlank
         private String firstName;
 
-        @NotBlank
+        @Nullable
         private String lastName;
 
         @NotNull

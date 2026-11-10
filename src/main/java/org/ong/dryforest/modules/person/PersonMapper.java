@@ -1,3 +1,4 @@
+
 package org.ong.dryforest.modules.person;
 
 import org.jspecify.annotations.Nullable;
@@ -37,11 +38,11 @@ public class PersonMapper {
 
         Person person = new Person();
 
-        person.setLastName(dto.getLastName());
+        person.setLastName(normalizeOptionalValue(dto.getLastName()));
         person.setFirstName(dto.getFirstName());
         person.setEmail(dto.getEmail());
-        person.setPhoneNumber(dto.getPhoneNumber());
-        person.setAddress(dto.getAddress());
+        person.setPhoneNumber(normalizeOptionalValue(dto.getPhoneNumber()));
+        person.setAddress(normalizeOptionalValue(dto.getAddress()));
         person.setGender(dto.getGender());
         person.setSite(site);
 
@@ -54,12 +55,22 @@ public class PersonMapper {
             @Nullable Site site
     ) {
 
-        person.setLastName(dto.getLastName());
+        person.setLastName(normalizeOptionalValue(dto.getLastName()));
         person.setFirstName(dto.getFirstName());
         person.setEmail(dto.getEmail());
-        person.setPhoneNumber(dto.getPhoneNumber());
-        person.setAddress(dto.getAddress());
+        person.setPhoneNumber(normalizeOptionalValue(dto.getPhoneNumber()));
+        person.setAddress(normalizeOptionalValue(dto.getAddress()));
         person.setGender(dto.getGender());
         person.setSite(site);
+    }
+
+    @Nullable
+    private String normalizeOptionalValue(@Nullable String value) {
+
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        return value.trim();
     }
 }

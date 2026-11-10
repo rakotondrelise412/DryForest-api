@@ -1,3 +1,4 @@
+
 package org.ong.dryforest.modules.identity.service;
 
 import lombok.RequiredArgsConstructor;
@@ -6,11 +7,19 @@ import org.ong.dryforest.enums.Role;
 import org.ong.dryforest.modules.identity.User;
 import org.ong.dryforest.modules.identity.UserMapper;
 import org.ong.dryforest.modules.identity.UserRepository;
+import org.ong.dryforest.modules.identity.UserSearchQuery;
 import org.ong.dryforest.modules.identity.dto.UserDto;
 import org.ong.dryforest.modules.person.Person;
 import org.ong.dryforest.modules.person.PersonRepository;
 import org.ong.dryforest.modules.site.Site;
 import org.ong.dryforest.modules.site.SiteRepository;
+import org.ong.dryforest.shared.search.SearchResult;
+import org.ong.dryforest.shared.search.SearchSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -51,6 +60,14 @@ public class UserService implements UserDetailsService {
             );
         }
 
+        if (personRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException(
+                    "Une personne avec l'adresse email '"
+                            + dto.getEmail()
+                            + "' existe déjà."
+            );
+        }
+
         String password = dto.getPassword();
 
         if (password == null || password.isBlank()) {
@@ -62,7 +79,7 @@ public class UserService implements UserDetailsService {
         Person person = new Person();
 
         person.setFirstName(dto.getFirstName());
-        person.setLastName(dto.getLastName());
+        person.setLastName(normalizeLastName(dto.getLastName()));
         person.setGender(dto.getGender());
         person.setPhoneNumber(dto.getPhoneNumber());
         person.setEmail(dto.getEmail());
@@ -86,12 +103,20 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserDto> findAll() {
+    public SearchResult<UserDto> findAll(int page, int size) {
 
-        return userRepository.findAllByIsDeletedFalse()
-                .stream()
-                .map(userMapper::toDto)
-                .toList();
+        validatePagination(page, size, false);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Page<User> result =
+                userRepository.findAllByIsDeletedFalse(pageable);
+
+        return toSearchResult(result, page, size);
     }
 
     @Transactional(readOnly = true)
@@ -119,15 +144,24 @@ public class UserService implements UserDetailsService {
         user.setSalary(dto.getSalary());
         user.setRole(dto.getRole());
 
-        // Le mot de passe est facultatif lors d'une modification.
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
         Person person = user.getPerson();
 
+        if (!person.getEmail().equalsIgnoreCase(dto.getEmail())
+                && personRepository.existsByEmail(dto.getEmail())) {
+
+            throw new IllegalArgumentException(
+                    "Une personne avec l'adresse email '"
+                            + dto.getEmail()
+                            + "' existe déjà."
+            );
+        }
+
         person.setFirstName(dto.getFirstName());
-        person.setLastName(dto.getLastName());
+        person.setLastName(normalizeLastName(dto.getLastName()));
         person.setGender(dto.getGender());
         person.setPhoneNumber(dto.getPhoneNumber());
         person.setEmail(dto.getEmail());
@@ -186,5 +220,88 @@ public class UserService implements UserDetailsService {
                 );
 
         person.setSite(site);
+    }
+
+    @Nullable
+    private String normalizeLastName(@Nullable String lastName) {
+
+        if (lastName == null || lastName.isBlank()) {
+            return null;
+        }
+
+        return lastName.trim();
+    }
+
+    @Transactional(readOnly = true)
+    public SearchResult<UserDto> search(UserSearchQuery request) {
+
+        int page = request.resolvePageNumber();
+        int size = request.resolvePageSize();
+
+        validatePagination(page, size, true);
+
+        String sortBy = request.resolveSortBy();
+
+        Sort.Direction direction = request.resolveAscending()
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(
+                page - 1,
+                size,
+                Sort.by(direction, sortBy)
+        );
+
+        Specification<User> specification =
+                SearchSpecification.from(request);
+
+        specification = specification.and(
+                (root, query, cb) ->
+                        cb.isFalse(root.get("isDeleted"))
+        );
+
+        Page<User> result = userRepository.findAll(
+                specification,
+                pageable
+        );
+
+        return toSearchResult(result, page, size);
+    }
+
+    private void validatePagination(
+            int page,
+            int size,
+            boolean oneBased
+    ) {
+
+        int minimumPage = oneBased ? 1 : 0;
+
+        if (page < minimumPage || size < 1 || size > 100) {
+            throw new IllegalArgumentException(
+                    "Paramètres de pagination invalides."
+            );
+        }
+    }
+
+    private SearchResult<UserDto> toSearchResult(
+            Page<User> result,
+            int page,
+            int size
+    ) {
+
+        List<UserDto> content = result.getContent()
+                .stream()
+                .map(userMapper::toDto)
+                .toList();
+
+        return new SearchResult<>(
+                content,
+                result.getTotalElements(),
+                result.getTotalPages(),
+                page,
+                size,
+                result.hasNext(),
+                result.hasPrevious()
+        );
     }
 }

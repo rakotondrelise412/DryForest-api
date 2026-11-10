@@ -1,13 +1,14 @@
+
 package org.ong.dryforest.modules.identity;
 
-import lombok.RequiredArgsConstructor;
 import org.ong.dryforest.modules.identity.dto.UserDto;
 import org.ong.dryforest.modules.person.Person;
 import org.ong.dryforest.modules.site.Site;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Component
-@RequiredArgsConstructor
 public class UserMapper {
 
     public UserDto toDto(User user) {
@@ -18,8 +19,6 @@ public class UserMapper {
 
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
-
-        // Ne jamais retourner le mot de passe.
         dto.setPassword(null);
 
         dto.setSalary(user.getSalary());
@@ -28,11 +27,19 @@ public class UserMapper {
         dto.setFirstName(person.getFirstName());
         dto.setLastName(person.getLastName());
         dto.setGender(person.getGender());
-        dto.setPhoneNumber(person.getPhoneNumber());
+
+        dto.setPhoneNumber(
+                Objects.requireNonNull(
+                        person.getPhoneNumber(),
+                        "Un utilisateur doit obligatoirement avoir un numéro de téléphone."
+                )
+        );
+
         dto.setEmail(person.getEmail());
         dto.setAddress(person.getAddress());
 
         Site site = person.getSite();
+
         dto.setSiteId(site != null ? site.getId() : null);
 
         dto.setCreatedAt(user.getCreatedAt());

@@ -45,6 +45,30 @@ public enum Permission {
     PATROL_UPDATE,
     PATROL_DELETE,
 
+    // Gestion des animaux
+    ANIMAL_READ,
+    ANIMAL_CREATE,
+    ANIMAL_UPDATE,
+    ANIMAL_DELETE,
+
+    // Gestion des observations
+    OBSERVATION_READ,
+    OBSERVATION_CREATE,
+    OBSERVATION_UPDATE,
+    OBSERVATION_DELETE,
+
+    // Gestion du suivi des animaux
+    TRACKING_READ,
+    TRACKING_CREATE,
+    TRACKING_UPDATE,
+    TRACKING_DELETE,
+
+    // Gestion des données de référence
+    REFERENCE_READ,
+    REFERENCE_CREATE,
+    REFERENCE_UPDATE,
+    REFERENCE_DELETE,
+
     // Statistiques
     GLOBAL_STATISTICS_READ,
     SITE_STATISTICS_READ,

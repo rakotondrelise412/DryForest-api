@@ -1,3 +1,4 @@
+
 package org.ong.dryforest.modules.person;
 
 import jakarta.validation.Valid;
@@ -14,8 +15,9 @@ public class PersonController {
 
     private final PersonService personService;
 
+
     @GetMapping
-    @PreAuthorize("@permissionService.hasPermission(T(org.ong.dryforest.enums.Permission).PERSON_READ)")
+    @PreAuthorize("hasAuthority('PERSON_READ')")
     public SearchResult<PersonDTO> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -25,15 +27,16 @@ public class PersonController {
 
 
     @GetMapping("/{id}")
-    @PreAuthorize("@permissionService.hasPermission(T(org.ong.dryforest.enums.Permission).PERSON_READ)")
-    public PersonDTO findById(@PathVariable Long id) {
-
+    @PreAuthorize("hasAuthority('PERSON_READ')")
+    public PersonDTO findById(
+            @PathVariable Long id
+    ) {
         return personService.findById(id);
     }
 
 
     @PostMapping("/search")
-    @PreAuthorize("@permissionService.hasPermission(T(org.ong.dryforest.enums.Permission).PERSON_READ)")
+    @PreAuthorize("hasAuthority('PERSON_READ')")
     public SearchResult<PersonDTO> search(
             @RequestBody PersonSearchQuery request
     ) {
@@ -43,15 +46,16 @@ public class PersonController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("@permissionService.hasPermission(T(org.ong.dryforest.enums.Permission).PERSON_CREATE)")
-    public PersonDTO create(@Valid @RequestBody PersonDTO dto) {
-
+    @PreAuthorize("hasAuthority('PERSON_CREATE')")
+    public PersonDTO create(
+            @Valid @RequestBody PersonDTO dto
+    ) {
         return personService.create(dto);
     }
 
 
     @PutMapping("/{id}")
-    @PreAuthorize("@permissionService.hasPermission(T(org.ong.dryforest.enums.Permission).PERSON_UPDATE)")
+    @PreAuthorize("hasAuthority('PERSON_UPDATE')")
     public PersonDTO update(
             @PathVariable Long id,
             @Valid @RequestBody PersonDTO dto
@@ -62,9 +66,10 @@ public class PersonController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@permissionService.hasPermission(T(org.ong.dryforest.enums.Permission).PERSON_DELETE)")
-    public void delete(@PathVariable Long id) {
-
+    @PreAuthorize("hasAuthority('PERSON_DELETE')")
+    public void delete(
+            @PathVariable Long id
+    ) {
         personService.delete(id);
     }
 }

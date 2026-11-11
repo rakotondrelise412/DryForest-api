@@ -8,13 +8,15 @@ import lombok.Setter;
 import org.ong.dryforest.enums.Role;
 import org.ong.dryforest.modules.person.Person;
 import org.ong.dryforest.shared.base.AbstractEntity;
+import org.ong.dryforest.shared.security.RolePermissions;
 import org.ong.dryforest.shared.sort.SortableField;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -44,8 +46,20 @@ public class User extends AbstractEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(
-                new SimpleGrantedAuthority(role.name())
+
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        authorities.add(
+                new SimpleGrantedAuthority("ROLE_" + role.name())
         );
+
+        RolePermissions.getPermissions(role)
+                .forEach(permission ->
+                        authorities.add(
+                                new SimpleGrantedAuthority(permission.name())
+                        )
+                );
+
+        return authorities;
     }
 }

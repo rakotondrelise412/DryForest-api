@@ -2,6 +2,7 @@
 package org.ong.dryforest.shared.security;
 
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.ong.dryforest.enums.Permission;
@@ -14,14 +15,18 @@ public final class RolePermissions {
 
     public static Set<Permission> getPermissions(Role role) {
 
+        Objects.requireNonNull(role, "Le rôle ne peut pas être null");
+
         return switch (role) {
 
             // ADMIN : tous les droits
-            case ADMIN -> EnumSet.allOf(Permission.class);
+            case ADMIN -> Set.copyOf(
+                    EnumSet.allOf(Permission.class)
+            );
 
-            // MANAGER : gestion métier complète,
+            // MANAGER : gestion métier complète
             // sauf utilisateurs, personnes et sites.
-            case MANAGER -> EnumSet.of(
+            case MANAGER -> Set.of(
 
                     // Sites et personnes : consultation uniquement
                     Permission.SITE_READ,
@@ -85,13 +90,13 @@ public final class RolePermissions {
             );
 
             // PATROL_AGENT : opérations de terrain
-            case PATROL_AGENT -> EnumSet.of(
+            case PATROL_AGENT -> Set.of(
 
                     // Statistiques
                     Permission.GLOBAL_STATISTICS_READ,
                     Permission.SITE_STATISTICS_READ,
 
-                    // Consultation inter-sites
+                    // Consultation
                     Permission.SITE_READ,
                     Permission.ZONE_READ,
                     Permission.PLANTATION_READ,
@@ -124,13 +129,13 @@ public final class RolePermissions {
             );
 
             // OBSERVER : consultation uniquement
-            case OBSERVER -> EnumSet.of(
+            case OBSERVER -> Set.of(
 
                     // Statistiques
                     Permission.GLOBAL_STATISTICS_READ,
                     Permission.SITE_STATISTICS_READ,
 
-                    // Consultation inter-sites
+                    // Consultation
                     Permission.SITE_READ,
                     Permission.ZONE_READ,
                     Permission.PLANTATION_READ,
@@ -151,6 +156,8 @@ public final class RolePermissions {
             Role role,
             Permission permission
     ) {
+        Objects.requireNonNull(permission, "La permission ne peut pas être null");
+
         return getPermissions(role).contains(permission);
     }
 }

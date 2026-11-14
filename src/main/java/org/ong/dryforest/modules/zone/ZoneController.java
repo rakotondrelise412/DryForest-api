@@ -1,3 +1,4 @@
+
 package org.ong.dryforest.modules.zone;
 
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -20,6 +22,7 @@ public class ZoneController {
     private final ZoneService zoneService;
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ZONE_READ')")
     public Page<ZoneDTO> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -38,6 +41,7 @@ public class ZoneController {
     }
 
     @GetMapping("/{uuid}")
+    @PreAuthorize("hasAuthority('ZONE_READ')")
     public ZoneDTO getByUuid(
             @PathVariable UUID uuid
     ) {
@@ -46,6 +50,7 @@ public class ZoneController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ZONE_CREATE')")
     @ResponseStatus(HttpStatus.CREATED)
     public ZoneDTO create(
             @RequestBody ZoneDTO dto
@@ -55,6 +60,7 @@ public class ZoneController {
     }
 
     @PostMapping("/search")
+    @PreAuthorize("hasAuthority('ZONE_READ')")
     public SearchResult<ZoneDTO> search(
             @RequestBody ZoneSearchQuery request
     ) {
@@ -63,6 +69,7 @@ public class ZoneController {
     }
 
     @PutMapping("/{uuid}")
+    @PreAuthorize("hasAuthority('ZONE_UPDATE')")
     public ZoneDTO update(
             @PathVariable UUID uuid,
             @RequestBody ZoneDTO dto
@@ -72,6 +79,7 @@ public class ZoneController {
     }
 
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("hasAuthority('ZONE_DELETE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
             @PathVariable UUID uuid
